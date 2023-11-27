@@ -11,3 +11,4 @@ project/*
 .idea/*
 .metals/*
 .bloop/*
+.bsp/*
