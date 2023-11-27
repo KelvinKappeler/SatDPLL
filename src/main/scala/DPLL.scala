@@ -1,6 +1,6 @@
 object DPLL {
-  
-  def dpll(terms: List[Term]): Boolean = {
+
+  def dpll(terms: List[Clause]): Boolean = {
     ???
   }
 

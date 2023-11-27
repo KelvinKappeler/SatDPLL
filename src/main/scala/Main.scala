@@ -1,3 +1,4 @@
 @main def main: Unit =
-  val testTerm = And(Or(Var("a"), Var("b")), Not(Var("c")))
-  println(testTerm)
+  val testTerm = Implies(Var("Q"), And(Var("P"), Var("R")))
+  println(Transformation.toClauses(testTerm))
+  //DPLL.dpll(Transformation.toClauses(testTerm))

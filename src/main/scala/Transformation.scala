@@ -21,4 +21,9 @@ object Transformation {
     case _ => term
   }
 
+  def toClauses(term: Term): List[Clause] = toCNF(term) match {
+    case And(left, right) => toClauses(left) ++ toClauses(right)
+    case Or(left, right) => List(toClauses(left), toClauses(right)).flatten
+    case _ => List(List(term))
+  }
 }
