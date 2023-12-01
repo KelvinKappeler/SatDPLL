@@ -7,4 +7,6 @@ case class Not(term: Term) extends Term
 case class Implies(left: Term, right: Term) extends Term
 case class Iff(left: Term, right: Term) extends Term
 
-type Clause = List[Term]
+sealed abstract class Literal
+case class VarLiteral(name: String) extends Literal
+case class NotLiteral(variable: VarLiteral) extends Literal
