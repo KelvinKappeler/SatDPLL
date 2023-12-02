@@ -10,3 +10,7 @@ case class Iff(left: Term, right: Term) extends Term
 sealed abstract class Literal
 case class VarLiteral(name: String) extends Literal
 case class NotLiteral(variable: VarLiteral) extends Literal
+def inverse(literal: Literal): Literal = literal match {
+  case VarLiteral(name) => NotLiteral(VarLiteral(name))
+  case NotLiteral(VarLiteral(name)) => VarLiteral(name)
+}
