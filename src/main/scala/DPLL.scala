@@ -11,15 +11,16 @@ object DPLL {
     * @return A satisfying assignment for the given list of clauses, if one exists.
     */
   def solve(terms: List[Clause]): Option[Assignment] = {
-    val cleaned = cleanClauses(terms)
-    val result = dpll(getVarNames(terms), cleaned, Nil)
-    if (result.isDefined) {
-      Some(toAssignment(result.get))
-    } else {
-      None
-    }
+    val result = dpll(getVarNames(terms), cleanClauses(terms), Nil)
+    if (result.isDefined) Some(toAssignment(result.get)) else None
   }
 
+  /**
+    * Returns the distinct name of all variables in the given list of clauses.
+    *
+    * @param clauses A list of clauses
+    * @return The distinct name of all variables in the given list of clauses.
+    */
   private def getVarNames(clauses: List[Clause]): List[String] = {
     clauses.flatten.map {
       case VarLiteral(name) => name
@@ -27,6 +28,12 @@ object DPLL {
     }.distinct
   }
 
+  /**
+    * Returns an assignment from the given list of literals.
+    *
+    * @param literals A list of literals
+    * @return An assignment from the given list of literals.
+    */
   private def toAssignment(literals: List[Literal]): Assignment = {
     literals.map {
       case VarLiteral(name) => (name, true)
@@ -49,60 +56,57 @@ object DPLL {
   /**
     * Resolve the satisfiability of the given clauses using the DPLL algorithm.
     *
-    * @param unassignedVar
-    * @param clauses
-    * @param assignment
-    * @return
+    * @param unassignedVar A list of unassigned variables
+    * @param clauses A list of clauses
+    * @param assignment A list of assigned literals
+    * @return A satisfying assignment for the given list of clauses, if one exists.
     */
   private def dpll(unassignedVar: List[String], clauses: List[Clause], assignment: List[Literal]): Option[List[Literal]] = {
-    if (clauses.isEmpty) {
-      return Some(assignment)
-    }
+    if (clauses.isEmpty) return Some(assignment)
+    if (unassignedVar.isEmpty) return None
 
-    if (unassignedVar.isEmpty) {
-      return None
-    }
-
-    //Unit Clause
+    //Unit Clause Rule
     val unitClause = findUnitClause(clauses)
     if (unitClause.isDefined) {
       val term = unitClause.get
-      val newClauses = treatNewAssignment(clauses, term)
-      return dpll(unassignedVar, newClauses, term :: assignment)
+      return dpll(unassignedVar, treatNewAssignment(clauses, term), term :: assignment)
     }
 
-    //Pure Literal
+    //Pure Literal Rule
     val pureLiteral = findPureLiteral(clauses)
     if (pureLiteral.isDefined) {
       val term = pureLiteral.get
-      val newClauses = treatNewAssignment(clauses, term)
-      return dpll(unassignedVar, newClauses, term :: assignment)
+      return dpll(unassignedVar, treatNewAssignment(clauses, term), term :: assignment)
     }
 
-    //test if an assignment is possible for the first variable
+    //Test if an assignment is possible for the first variable
     val first = unassignedVar.head
 
     val firstVar = VarLiteral(first)
-    val clearedClauses = treatNewAssignment(clauses, firstVar)
-    val tryFirstVarAssignment = dpll(unassignedVar.tail, clearedClauses, firstVar :: assignment)
-    if (tryFirstVarAssignment.isDefined) {
-      return tryFirstVarAssignment
-    }
+    val tryFirstVarAssignment = dpll(
+      unassignedVar.tail,
+      treatNewAssignment(clauses, firstVar),
+      firstVar :: assignment)
+    if (tryFirstVarAssignment.isDefined) return tryFirstVarAssignment
 
-    //do the same with the inverse of the first variable
+    //Do the same with the inverse of the first variable
     val firstVarInverse = NotLiteral(VarLiteral(first))
-    val clearedClauses2 = treatNewAssignment(clauses, firstVarInverse)
-    val tryFirstVarInverseAssignment = dpll(unassignedVar.tail, clearedClauses2, firstVarInverse :: assignment)
-    if (tryFirstVarInverseAssignment.isDefined) {
-      return tryFirstVarInverseAssignment
-    }
+    val tryFirstVarInverseAssignment = dpll(
+      unassignedVar.tail,
+      treatNewAssignment(clauses, firstVarInverse),
+      firstVarInverse :: assignment)
+    if (tryFirstVarInverseAssignment.isDefined) return tryFirstVarInverseAssignment
 
-    //if neither is possible
+    //If neither is possible
     return None
   }
 
   /**
     * Remove all clauses that contain the given literal and remove the inverse of the given literal from all clauses.
+    * 
+    * @param clauses A list of clauses
+    * @param literal A literal
+    * @return A list of clauses with no clauses that contain the given literal and no inverse of the given literal.
     */
   private def treatNewAssignment(clauses: List[Clause], literal: Literal): List[Clause] = {
     val clausesWithoutLiteral = clauses.filterNot(_.contains(literal))
