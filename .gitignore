@@ -19,4 +19,7 @@ z3
 stainless.bat
 stainless
 stainless-cli
+.stainless-cache
+
+stainless-stack-trace.txt
 
