@@ -52,7 +52,7 @@ object DPLL {
     * @return A list of clauses with no duplicate literals and no clauses that contain some literal and its inverse.
     */
   private def cleanClauses(clauses: List[List[Literal]]): List[List[Literal]] = {
-    val filtered = clauses.filterNot(clause => clause.exists(literal => clause.contains(inverse(literal))))
+    val filtered = clauses.filterNot(clause => clause.exists(literal => clause.contains(literal.inverse)))
     filtered.map(_.unique).filterNot(_.isEmpty)
   }
 
@@ -113,7 +113,7 @@ object DPLL {
     */
   private def treatNewAssignment(clauses: List[List[Literal]], literal: Literal): List[List[Literal]] = {
     val clausesWithoutLiteral = clauses.filterNot(_.contains(literal))
-    clausesWithoutLiteral.map(_.filterNot(_ == inverse(literal)))
+    clausesWithoutLiteral.map(_.filterNot(_ == literal.inverse))
   }
 
   /**

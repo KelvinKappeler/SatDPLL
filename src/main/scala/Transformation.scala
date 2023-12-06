@@ -32,8 +32,6 @@ object Transformation {
     case Or(And(l1, l2), right) => And(Or(l1, right), Or(l2, right))
     case And(left, right) => And(toCNF(left), toCNF(right))
     case Or(left, right) => Or(toCNF(left), toCNF(right))
-    case Implies(left, right) => throw new IllegalArgumentException("Term must be in NNF")
-    case Iff(left, right) => throw new IllegalArgumentException("Term must be in NNF")
     case _ => term
   }
 
@@ -49,7 +47,7 @@ object Transformation {
         case Or(left, right) => rec(left) ++ rec(right)
         case Var(name) => List(VarLiteral(name))
         case Not(Var(name)) => List(NotLiteral(VarLiteral(name)))
-        case _ => throw new IllegalArgumentException("Term must be in CNF")
+        case _ => List()
       }
     }
 
@@ -58,7 +56,7 @@ object Transformation {
       case Not(Var(name)) => List(List(NotLiteral(VarLiteral(name))))
       case And(left, right) => toClauses(left) ++ toClauses(right)
       case Or(left, right) => List(rec(left) ++ rec(right))
-      case _ => throw new IllegalArgumentException("Term must be in CNF")
+      case _ => List()
     }
   }
 }
