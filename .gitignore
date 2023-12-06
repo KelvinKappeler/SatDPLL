@@ -12,3 +12,11 @@ project/*
 .metals/*
 .bloop/*
 .bsp/*
+
+cvc5
+lib
+z3
+stainless.bat
+stainless
+stainless-cli
+
