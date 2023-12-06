@@ -1,6 +1,7 @@
 import stainless.collection.List
 import stainless.collection.ListOps.FlattenableListOps
 import stainless.lang.Option.*
+import stainless.lang.Map.ToMapOps
 
 object DPLL {
 
@@ -11,10 +12,10 @@ object DPLL {
     * @param terms A list of clauses
     * @return A satisfying assignment for the given list of clauses, if one exists.
     */
-  def solve(terms: List[List[Literal]]): stainless.lang.Option[Map[String, Boolean]] = {
+  def solve(terms: List[List[Literal]]): stainless.lang.Option[stainless.lang.Map[String, Boolean]] = {
     val result = dpll(getVarNames(terms), cleanClauses(terms), List())
-    if (result.isDefined) stainless.lang.Some[Map[String, Boolean]](toAssignment(result.get))
-    else stainless.lang.None[Map[String, Boolean]]()
+    if (result.isDefined) stainless.lang.Some[stainless.lang.Map[String, Boolean]](toAssignment(result.get))
+    else stainless.lang.None[stainless.lang.Map[String, Boolean]]()
   }
 
   /**
@@ -27,7 +28,7 @@ object DPLL {
     clauses.flatten.map {
       case VarLiteral(name) => name
       case NotLiteral(VarLiteral(name)) => name
-    }.distinct
+    }.unique
   }
 
   /**
@@ -36,7 +37,7 @@ object DPLL {
     * @param literals A list of literals
     * @return An assignment from the given list of literals.
     */
-  private def toAssignment(literals: List[Literal]): Map[String, Boolean] = {
+  private def toAssignment(literals: List[Literal]): stainless.lang.Map[String, Boolean] = {
     literals.map {
       case VarLiteral(name) => (name, true)
       case NotLiteral(VarLiteral(name)) => (name, false)
@@ -52,7 +53,7 @@ object DPLL {
     */
   private def cleanClauses(clauses: List[List[Literal]]): List[List[Literal]] = {
     val filtered = clauses.filterNot(clause => clause.exists(literal => clause.contains(inverse(literal))))
-    filtered.map(_.distinct).filterNot(_.isEmpty)
+    filtered.map(_.unique).filterNot(_.isEmpty)
   }
 
   /**
