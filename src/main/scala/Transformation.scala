@@ -1,3 +1,5 @@
+import stainless.collection.List
+
 object Transformation {
 
   /**
@@ -41,8 +43,8 @@ object Transformation {
     * @param term A term
     * @return A list of clauses from the given term.
     */
-  def toClauses(term: Term): List[DPLL.Clause] = {
-    def rec(term: Term): DPLL.Clause = {
+  def toClauses(term: Term): List[List[Literal]] = {
+    def rec(term: Term): List[Literal] = {
       term match {
         case Or(left, right) => rec(left) ++ rec(right)
         case Var(name) => List(VarLiteral(name))

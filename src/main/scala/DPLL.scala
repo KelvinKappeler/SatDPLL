@@ -1,7 +1,8 @@
-object DPLL {
+import stainless.collection.List
+import stainless.collection.ListOps.FlattenableListOps
+import stainless.lang.Option.*
 
-  type Clause = List[Literal]
-  type Assignment = Map[String, Boolean]
+object DPLL {
 
   /**
     * Returns a satisfying assignment for the given list of clauses, if one exists.
@@ -10,9 +11,10 @@ object DPLL {
     * @param terms A list of clauses
     * @return A satisfying assignment for the given list of clauses, if one exists.
     */
-  def solve(terms: List[Clause]): Option[Assignment] = {
-    val result = dpll(getVarNames(terms), cleanClauses(terms), Nil)
-    if (result.isDefined) Some(toAssignment(result.get)) else None
+  def solve(terms: List[List[Literal]]): stainless.lang.Option[Map[String, Boolean]] = {
+    val result = dpll(getVarNames(terms), cleanClauses(terms), List())
+    if (result.isDefined) stainless.lang.Some[Map[String, Boolean]](toAssignment(result.get))
+    else stainless.lang.None[Map[String, Boolean]]()
   }
 
   /**
@@ -21,7 +23,7 @@ object DPLL {
     * @param clauses A list of clauses
     * @return The distinct name of all variables in the given list of clauses.
     */
-  private def getVarNames(clauses: List[Clause]): List[String] = {
+  private def getVarNames(clauses: List[List[Literal]]): List[String] = {
     clauses.flatten.map {
       case VarLiteral(name) => name
       case NotLiteral(VarLiteral(name)) => name
@@ -34,7 +36,7 @@ object DPLL {
     * @param literals A list of literals
     * @return An assignment from the given list of literals.
     */
-  private def toAssignment(literals: List[Literal]): Assignment = {
+  private def toAssignment(literals: List[Literal]): Map[String, Boolean] = {
     literals.map {
       case VarLiteral(name) => (name, true)
       case NotLiteral(VarLiteral(name)) => (name, false)
@@ -48,7 +50,7 @@ object DPLL {
     * @param clauses A list of clauses
     * @return A list of clauses with no duplicate literals and no clauses that contain some literal and its inverse.
     */
-  private def cleanClauses(clauses: List[Clause]): List[Clause] = {
+  private def cleanClauses(clauses: List[List[Literal]]): List[List[Literal]] = {
     val filtered = clauses.filterNot(clause => clause.exists(literal => clause.contains(inverse(literal))))
     filtered.map(_.distinct).filterNot(_.isEmpty)
   }
@@ -61,9 +63,9 @@ object DPLL {
     * @param assignment A list of assigned literals
     * @return A satisfying assignment for the given list of clauses, if one exists.
     */
-  private def dpll(unassignedVar: List[String], clauses: List[Clause], assignment: List[Literal]): Option[List[Literal]] = {
-    if (clauses.isEmpty) return Some(assignment)
-    if (unassignedVar.isEmpty) return None
+  private def dpll(unassignedVar: List[String], clauses: List[List[Literal]], assignment: List[Literal]): stainless.lang.Option[List[Literal]] = {
+    if (clauses.isEmpty) return stainless.lang.Some[List[Literal]](assignment)
+    if (unassignedVar.isEmpty) return stainless.lang.None[List[Literal]]()
 
     //Unit Clause Rule
     val unitClause = findUnitClause(clauses)
@@ -98,7 +100,7 @@ object DPLL {
     if (tryFirstVarInverseAssignment.isDefined) return tryFirstVarInverseAssignment
 
     //If neither is possible
-    return None
+    return stainless.lang.None[List[Literal]]()
   }
 
   /**
@@ -108,7 +110,7 @@ object DPLL {
     * @param literal A literal
     * @return A list of clauses with no clauses that contain the given literal and no inverse of the given literal.
     */
-  private def treatNewAssignment(clauses: List[Clause], literal: Literal): List[Clause] = {
+  private def treatNewAssignment(clauses: List[List[Literal]], literal: Literal): List[List[Literal]] = {
     val clausesWithoutLiteral = clauses.filterNot(_.contains(literal))
     clausesWithoutLiteral.map(_.filterNot(_ == inverse(literal)))
   }
@@ -120,7 +122,7 @@ object DPLL {
     * @param clauses A list of clauses
     * @return A unit clause, if one exists.
     */
-  private def findUnitClause(clauses: List[Clause]): Option[Literal] = {
+  private def findUnitClause(clauses: List[List[Literal]]): stainless.lang.Option[Literal] = {
     clauses.find(_.size == 1).map(_.head)
   }
 
@@ -132,7 +134,7 @@ object DPLL {
     * @param clauses A list of clauses
     * @return A pure literal, if one exists.
     */
-  private def findPureLiteral(clauses: List[Clause]): Option[Literal] = {
+  private def findPureLiteral(clauses: List[List[Literal]]): stainless.lang.Option[Literal] = {
     val terms = clauses.flatten
     clauses.flatten.find {
       case VarLiteral(name) => !terms.contains(NotLiteral(VarLiteral(name)))

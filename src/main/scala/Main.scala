@@ -1,3 +1,5 @@
+import stainless.collection.List
+
 @main def main: Unit =
   val testTerm = Implies(Var("Q"), And(Not(Var("P")), Var("R")))
   val testBasicTerm = And(Var("Q"), And(Not(Var("P")), Var("R")))
