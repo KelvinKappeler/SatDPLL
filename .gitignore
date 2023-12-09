@@ -22,4 +22,4 @@ stainless-cli
 .stainless-cache
 
 stainless-stack-trace.txt
-
+.scalafmt.conf
