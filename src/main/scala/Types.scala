@@ -11,17 +11,18 @@ sealed abstract class Literal {
     case NegLit(l) => l
     case _         => Lit("")
   }
-  def eq(o: Literal) = this match {
-    case Lit(name) => this == o
-    case NegLit(l) => this == l
-  }
+  def cmp(o: Literal): Boolean = (this match {
+    case Lit(name) => o.isInstanceOf[Lit] && name == o.asInstanceOf[Lit].name
+    case NegLit(l) =>
+      o.isInstanceOf[NegLit] && l.name == o.asInstanceOf[NegLit].l.name
+  }).ensuring(res => if res then (this == o || o == this) else (this != o && o != this))
+
   @unchecked
   override def toString: String = (this: Literal @unchecked) match {
     case Lit(name)      => name
     case NegLit(l: Lit) => "¬" + l.name
     case _              => ""
   }
-  def cmpLits = this.neg.neg == this
 }
 case class Lit(name: String) extends Literal
 case class NegLit(l: Lit) extends Literal
