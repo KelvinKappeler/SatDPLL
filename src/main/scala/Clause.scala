@@ -3,9 +3,11 @@ import stainless.collection.List.{mkString => lstToString}
 
 class Clause(val l: List[Literal]) {
   override def toString(): String = {
+    def litToString(l: Literal) = l.toString
     lstToString(this.l, " V ", litToString)
   }
-  private def litToString(l: Literal) = l.toString
+
+
   def rm(lit: Literal): Clause = {
     Clause(this.l.filter(_ != lit))
   }
