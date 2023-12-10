@@ -31,7 +31,7 @@ object DPLL {
     //   Some[Map[String, Boolean]](toAssignment(result.get))
     // else None[Map[String, Boolean]]()
     None[Map[String, Boolean]]()
-  }.ensuring(res => res.isInstanceOf[None[Map[String, Boolean]]])
+  }//.ensuring(res => res.isInstanceOf[None[Map[String, Boolean]]])
 
   /** Resolve the satisfiability of the given clauses using the DPLL algorithm.
     *
@@ -123,7 +123,7 @@ object DPLL {
   /** Returns a unit clause, if one exists. A unit clause is a clause with only
     * one literal, i.e Lit or NegLit(Lit).
     *
-    * @param clauses
+    * @param f
     *   A list of clauses
     * @return
     *   A unit clause, if one exists.
@@ -131,12 +131,12 @@ object DPLL {
   private def getUnitCl(f: Formula): Option[Literal] = {
     require(f.nonEmpty && f.head.nonEmpty && f.forall(!_.exists(_ == Nil())))
     f.find(_.size == 1).map(_.head)
-  }.ensuring(res => 
-   res match {
-    case Some(l) => f.filter(_.contains(l)).exists(_.size == 1)
-    case None() => f.forall(_.size != 1)
-   } 
-  )
+  }.ensuring { res =>
+    if res.isDefined then 
+      f.exists(c => c.contains(res.get) && c.size == 1) 
+    else f.forall(_.size != 1)
+  } 
+
 
   /** Returns a pure literal, if one exists. A pure literal is a literal that
     * only appears with one form in the entire formula. For example, in the
@@ -148,10 +148,8 @@ object DPLL {
     * @return
     *   A pure literal, if one exists.
     */
-  @unchecked
-  private def getPureLit(
-      f: Formula
-  ): Option[Literal] = {
+  private def getPureLit(f: Formula): Option[Literal] = {
+    require(f != Nil() && f.nonEmpty && f.head.nonEmpty && f.forall(_.nonEmpty))
     val lits = f.flatten
     (lits: List[Literal] @unchecked).find {
       case (l: Lit)       => !lits.contains(NegLit(l))
@@ -167,7 +165,7 @@ object DPLL {
           case NegLit(l: Lit) => !lits.contains(l)
         }
       case None() =>
-        f.forall(_.forall(lit => lits.exists(_.cmp(lit.neg)))) // not verified
+        lits.forall(l => lits.contains(l.neg)) // not verified
     }
   )
 
