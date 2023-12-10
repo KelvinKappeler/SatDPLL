@@ -6,9 +6,12 @@ sbt project with stainless. Verify with `sbt compile` and run it with `sbt run`.
 
 - [ ] solve
 - [ ] dpll
-- [ ] rm
-    - [x] rmFromClause
-    - [ ] rmClauseWithLit
-- [ ] findUnitClause
-- [ ] findPureLiteral
-- [ ] cleanClauses (optional)
+- [x] Clause
+    - [x] rm 
+- [x] Literal
+- [ ] Formula
+    - [ ] rm
+        - [ ] rmClauseWithLit
+    - [ ] getUnit
+    - [ ] getPure
+    - [ ] cleanClauses (optional)

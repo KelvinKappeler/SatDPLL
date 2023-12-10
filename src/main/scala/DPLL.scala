@@ -44,19 +44,19 @@ object DPLL {
     if (f.c.isEmpty) return true
     if (unas.isEmpty) return false
 
-    // unit propagation
-    val unit = f.getUnit
-    if (unit.isDefined) {
-      val term = unit.get
-      return dpll(unas, f.rm(term), term :: as)
-    }
+    // // unit propagation
+    // val unit = f.getUnit
+    // if (unit.isDefined) {
+    //   val term = unit.get
+    //   return dpll(unas, f.rm(term), term :: as)
+    // }
 
-    // pure literal elimination
-    val pure = f.getPure
-    if (pure.isDefined) {
-      val term = pure.get
-      return dpll(unas, f.rm(term), term :: as)
-    }
+    // // pure literal elimination
+    // val pure = f.getPure
+    // if (pure.isDefined) {
+    //   val term = pure.get
+    //   return dpll(unas, f.rm(term), term :: as)
+    // }
 
     // Test if an assignment is possible for the first variable
     val asTrue = dpll(unas.tail, f.rm(unas.head), unas.head :: as)
@@ -77,10 +77,10 @@ object DPLL {
     * @return
     *   An assignment from the given list of literals.
     */
-  private def toAssignment(lits: List[Literal]): Map[String, Boolean] = {
-    lits.map {
-      case Lit(name)         => (name, true)
-      case NegLit(Lit(name)) => (name, false)
-    }.toMap
-  }
+//   private def toAssignment(lits: List[Literal]): Map[String, Boolean] = {
+//     lits.map {
+//       case Lit(name)         => (name, true)
+//       case NegLit(Lit(name)) => (name, false)
+//     }.toMap
+//   }
 }

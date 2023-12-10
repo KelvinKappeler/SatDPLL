@@ -10,7 +10,7 @@ class Formula(val c: List[Clause]) {
   override def toString(): String = { 
     def cToString(c: Clause) = c.toString()
     // The symbol '∧' cause concurrency bugs in the compiler
-    "(" + lstToString(this.c, ") ∧ (", cToString) + ")"
+    "(" + lstToString(this.c, ") /\\ (", cToString) + ")"
   }
   def distinct: List[Literal] = this.flatten.unique
   def flatten: List[Literal] = this.c.map(_.l).flatten
@@ -24,6 +24,14 @@ class Formula(val c: List[Clause]) {
     !res.flatten.exists(_ == lit)
     res.flatten.content.subsetOf(this.flatten.content) &&
     res.c.forall(!_.l.contains(lit))
+  )
+
+  private def rmClauseWithLit(lit: Literal): Formula = {
+    Formula(this.c.map(c => c.rm(lit)).filter(!_.l.contains(lit)).filter(_.l.nonEmpty))
+  }.ensuring(res => 
+    res.c.size <= this.c.size && // verified
+    res.c.forall(_.l.nonEmpty) && // verified  
+    this.c.forall(_.l.forall(_ != lit))
   )
 
   /** Returns a unit clause, if one exists. A unit clause is a clause with only
@@ -73,13 +81,7 @@ class Formula(val c: List[Clause]) {
     }
   )
 
-  private def rmClauseWithLit(lit: Literal): Formula = {
-    Formula(this.c.map(c => c.rm(lit)).filter(!_.l.contains(lit)).filter(_.l.nonEmpty))
-  }.ensuring(res => 
-    res.c.size <= this.c.size && // verified
-    res.c.forall(_.l.nonEmpty) && // verified  
-    this.c.forall(_.l.forall(_ != lit))
-  )
+
 
   /** Filters the given list of clauses by removing all clauses that contain
   * some literal and its inverse and remove all duplicate literals from each
