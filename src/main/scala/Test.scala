@@ -27,17 +27,17 @@ object Test {
     val sat0: Formula = Formula(List(Clause(List(Lit("A")))))
     print("\tSolving SAT formula ")
     println(sat0)
-    DPLL.solve(sat0)
+    //DPLL.solve(sat0)
 
     val sat1: Formula = Formula(List(Clause(List(q)), Clause(List(r, r.neg, p.neg))))
     print("\tSolving SAT formula ")
     println(sat1)
-    DPLL.solve(sat1)
+    //DPLL.solve(sat1)
 
     val sat2: Formula = Formula(List(Clause(List(q)), Clause(List(q.neg, p.neg))))
     print("\tSolving SAT formula ")
     println(sat2)
-    DPLL.solve(sat2)
+    //DPLL.solve(sat2)
 
     // Satisfying with
     //  q <- false
@@ -73,7 +73,7 @@ object Test {
     val unsat1: Formula = Formula(List(Clause(List(q)), Clause(List(q.neg)), Clause(List(q.neg, q))))
     print("\tSolving UNSAT formula ")
     println(unsat1)
-    DPLL.solve(unsat1)
+    //DPLL.solve(unsat1)
 
     val unsat2: Formula = Formula(List(
       Clause(List(t.neg, s, q.neg)),

@@ -1,10 +1,9 @@
 import stainless.collection.{List => List}
-import stainless.collection.List.{mkString => lstToString}
+import stainless.collection.List.*
 
-class Clause(val lits: List[Literal]) {
+case class Clause(val lits: List[Literal]) {
   override def toString(): String = {
-    def litToString(l: Literal) = l.toString
-    lstToString(this.lits, " V ", litToString)
+    mkString(lits, " V ", (l: Literal) => l.toString)
   }
 
   def eq(o: Clause): Boolean = {
@@ -16,10 +15,9 @@ class Clause(val lits: List[Literal]) {
 
   def rm(lit: Literal): Clause = {
     Clause(this.lits.filter(_ != lit))
-  }
-  .ensuring(c => 
+  }.ensuring(c => 
     c.lits.size <= this.lits.size &&
-    c.lits.content.subsetOf(c.lits.content) &&
     c.lits.forall(_ != lit)  
   )
+
 }

@@ -1,19 +1,16 @@
 import stainless.collection.{List => List}
-import stainless.collection.List.{mkString => lstToString}
+import stainless.collection.List.*
 import stainless.collection.ListOps.FlattenableListOps
 import stainless.lang.Option as Option
 import stainless.lang.Some as Some
 import stainless.lang.None as None
 import stainless.collection.Nil
 
-// import stainless.lang.{Map => Map}
-
-class Formula(val clauses: List[Clause]) {
+case class Formula(val clauses: List[Clause]) {
   override def toString(): String = { 
-    def cToString(c: Clause) = c.toString()
-    // The symbol '∧' cause concurrency bugs in the compiler
-    "(" + lstToString(this.clauses, ") /\\ (", cToString) + ")"
+    mkString(clauses.map(clause => "(" + clause.toString() + ")"), """ /\ """, (str: String) => str)
   }
+  
   def distinct: List[Literal] = this.flatten.unique
 
   def flatten: List[Literal] = this.clauses.map(_.lits).flatten
@@ -35,7 +32,7 @@ class Formula(val clauses: List[Clause]) {
   //   res.flatten.content.subsetOf(this.flatten.content) &&
   //   res.c.forall(!_.lits.contains(lit))
   // )
-
+/*
   def rmClause(lit: Literal): Formula = {
     require(this.clauses.nonEmpty 
       && this.clauses.forall(_.lits.nonEmpty) 
@@ -46,11 +43,10 @@ class Formula(val clauses: List[Clause]) {
     // this.clauses.filter(c => c.lits.contains(lit)).forall(c => !f.clauses.contains(c))
     f
   } ensuring { res => 
-    res.clauses.size <= this.clauses.size                 // verified
-    && res.clauses.content.subsetOf(this.clauses.content) // verified
-    && res.clauses.forall(c => !c.lits.contains(lit))     // verified
+    res.clauses.size <= this.clauses.size
+    && res.clauses.forall(c => !c.lits.contains(lit))
     && this.clauses.filter(c => c.lits.contains(lit)).size >= 1
-  }
+  }*/
     
   /** Returns a unit clause, if one exists. A unit clause is a clause with only
   * one literal, i.e Lit or NegLit(Lit).

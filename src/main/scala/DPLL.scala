@@ -10,6 +10,7 @@ import stainless.io.StdOut.{println => println, print => print}
 
 object DPLL {
 
+  /*
   implicit val state: stainless.io.State = stainless.io.newState
 
   /** Returns a satisfying assignment for the given list of clauses, if one
@@ -95,5 +96,5 @@ object DPLL {
 //       case Lit(name)         => (name, true)
 //       case NegLit(Lit(name)) => (name, false)
 //     }.toMap
-//   }
+//   }*/
 }
