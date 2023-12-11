@@ -4,52 +4,69 @@ import stainless.collection.ListOps.FlattenableListOps
 import stainless.lang.Option as Option
 import stainless.lang.Some as Some
 import stainless.lang.None as None
+import stainless.collection.Nil
+
 // import stainless.lang.{Map => Map}
 
-class Formula(val c: List[Clause]) {
+class Formula(val clauses: List[Clause]) {
   override def toString(): String = { 
     def cToString(c: Clause) = c.toString()
     // The symbol '∧' cause concurrency bugs in the compiler
-    "(" + lstToString(this.c, ") /\\ (", cToString) + ")"
+    "(" + lstToString(this.clauses, ") /\\ (", cToString) + ")"
   }
   def distinct: List[Literal] = this.flatten.unique
-  def flatten: List[Literal] = this.c.map(_.l).flatten
 
-  def rm(lit: Literal): Formula = {
-    Formula(this.c.map(_.rm(lit)).filter(_.l.nonEmpty))
-  }.ensuring(res => 
-    res.c.size <= this.c.size && // verified
-    res.c.forall(_.l.nonEmpty) // verified
-    !res.flatten.contains(lit)
-    !res.flatten.exists(_ == lit)
-    res.flatten.content.subsetOf(this.flatten.content) &&
-    res.c.forall(!_.l.contains(lit))
-  )
+  def flatten: List[Literal] = this.clauses.map(_.lits).flatten
 
-  private def rmClauseWithLit(lit: Literal): Formula = {
-    Formula(this.c.map(c => c.rm(lit)).filter(!_.l.contains(lit)).filter(_.l.nonEmpty))
-  }.ensuring(res => 
-    res.c.size <= this.c.size && // verified
-    res.c.forall(_.l.nonEmpty) && // verified  
-    this.c.forall(_.l.forall(_ != lit))
-  )
+  /** Removes all clauses containing the input literal and removes from all clauses
+   * the negated input literal.
+   * @param lit
+   *  The literal to remove.
+   * @return
+   *  A new formula not containing any clauses with the input lit and not negated input lit.
+  */
+  // def rm(lit: Literal): Formula = {
+  //   Formula(this.c.map(_.rm(lit)).filter(_.lits.nonEmpty))
+  // }.ensuring(res => 
+  //   res.c.size <= this.c.size && // verified
+  //   res.c.forall(_.lits.nonEmpty) // verified
+  //   !res.flatten.contains(lit)
+  //   !res.flatten.exists(_ == lit)
+  //   res.flatten.content.subsetOf(this.flatten.content) &&
+  //   res.c.forall(!_.lits.contains(lit))
+  // )
 
+  def rmClause(lit: Literal): Formula = {
+    require(this.clauses.nonEmpty 
+      && this.clauses.forall(_.lits.nonEmpty) 
+      && this.clauses.find(c => c.lits.contains(lit)).isDefined
+    )
+    val f = Formula(this.clauses.filter(c => !c.lits.contains(lit)))
+    f.clauses.forall(c => !c.lits.contains(lit))
+    // this.clauses.filter(c => c.lits.contains(lit)).forall(c => !f.clauses.contains(c))
+    f
+  } ensuring { res => 
+    res.clauses.size <= this.clauses.size                 // verified
+    && res.clauses.content.subsetOf(this.clauses.content) // verified
+    && res.clauses.forall(c => !c.lits.contains(lit))     // verified
+    && this.clauses.filter(c => c.lits.contains(lit)).size >= 1
+  }
+    
   /** Returns a unit clause, if one exists. A unit clause is a clause with only
   * one literal, i.e Lit or NegLit(Lit).
   *
-  * @param f
-  *   A list of clauses
+
   * @return
   *   A unit clause, if one exists.
   */
-  def getUnit: Option[Literal] = {
-    // require(this.c.nonEmpty && this.c.head.l.nonEmpty && this.c.forall(!_.l.exists(_ == Nil())))
-    this.c.find(_.l.size == 1).map(_.l.head)
-  }.ensuring { res =>
-    if res.isDefined then 
-      this.c.exists(_.l.contains(res.get) && c.size == 1) 
-    else this.c.forall(_.l.size != 1)
-  } 
+  // def getUnit: Option[Literal] = {
+  //   require(this.clauses.nonEmpty && this.clauses.forall(_.lits.nonEmpty) && this.clauses.forall(_.toString != ""))
+  //   this.clauses.find(_.lits.size == 1).map(_.lits.head)
+  // }.ensuring { res =>
+  //   if res.isDefined then 
+  //     this.clauses.exists(c => c.lits.contains(res.get) && c.lits.size == 1) 
+  //   else this.clauses.forall(_.lits.size != 1)
+  // } 
 
   /** Returns a pure literal, if one exists. A pure literal is a literal that
   * only appears with one form in the entire formula. For example, in the
@@ -61,25 +78,25 @@ class Formula(val c: List[Clause]) {
   * @return
   *   A pure literal, if one exists.
   */
-  def getPure: Option[Literal] = {
-    val lits = this.flatten
-    (lits: List[Literal] @unchecked).find {
-      case (l: Lit)       => !lits.contains(NegLit(l))
-      case NegLit(l: Lit) => !lits.contains(l)
-      case _              => false // Intentional, do not remove
-    }
-  }.ensuring(res =>
-    val lits = this.flatten
-    res match {
-      case Some(lit) =>
-        lit match {
-          case (l: Lit)       => !lits.contains(NegLit(l))
-          case NegLit(l: Lit) => !lits.contains(l)
-        }
-      case None() =>
-        lits.forall(l => lits.contains(l.neg)) // not verified
-    }
-  )
+  // def getPure: Option[Literal] = {
+  //   val lits = this.flatten
+  //   (lits: List[Literal] @unchecked).find {
+  //     case (l: Lit)       => !lits.contains(NegLit(l))
+  //     case NegLit(l: Lit) => !lits.contains(l)
+  //     case _              => false // Intentional, do not remove
+  //   }
+  // }.ensuring(res =>
+  //   val lits = this.flatten
+  //   res match {
+  //     case Some(lit) =>
+  //       lit match {
+  //         case (l: Lit)       => !lits.contains(NegLit(l))
+  //         case NegLit(l: Lit) => !lits.contains(l)
+  //       }
+  //     case None() =>
+  //       lits.forall(l => lits.contains(l.neg)) // not verified
+  //   }
+  // )
 
 
 
@@ -95,11 +112,11 @@ class Formula(val c: List[Clause]) {
   * 
   * Commented out because it is only a "nice-to-have" function, and not necessary.
   */
-  def cleanClauses: Formula = {
-    val filtered = this.c map { c => Clause(c.l filter { l => !c.l.contains(l.neg) }) }
-    Formula(filtered.map(c => Clause(c.l.unique)).filterNot(_.l.isEmpty))
-  }.ensuring { res =>
-    res.c.forall { c => !c.l.exists(lit => c.l.contains(lit.neg)) } &&
-    res.c.forall(_.l.nonEmpty)
-  }
+  // def cleanClauses: Formula = {
+  //   val filtered = this.clauses map { c => Clause(c.lits filter { l => !c.lits.contains(l.neg) }) }
+  //   Formula(filtered.map(c => Clause(c.lits.unique)).filterNot(_.lits.isEmpty))
+  // }.ensuring { res =>
+  //   res.clauses.forall { c => !c.lits.exists(lit => c.lits.contains(lit.neg)) } &&
+  //   res.clauses.forall(_.lits.nonEmpty)
+  // }
 }

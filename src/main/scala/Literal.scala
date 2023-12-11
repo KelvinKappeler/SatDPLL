@@ -9,23 +9,23 @@ sealed abstract class Literal {
 
   @unchecked
   def neg: Literal = (this: Literal @unchecked) match {
-    case Lit(name) => NegLit(this.asInstanceOf[Lit])
-    case NegLit(l) => l
+    case Lit(name) => Neg(this.asInstanceOf[Lit])
+    case Neg(l) => l
     case _         => Lit("")
   }
 
   def cmp(o: Literal): Boolean = (this match {
     case Lit(name) => o.isInstanceOf[Lit] && name == o.asInstanceOf[Lit].name
-    case NegLit(l) =>
-      o.isInstanceOf[NegLit] && l.name == o.asInstanceOf[NegLit].l.name
+    case Neg(l) =>
+      o.isInstanceOf[Neg] && l.name == o.asInstanceOf[Neg].l.name
   }).ensuring(res => if res then (this == o || o == this) else (this != o && o != this))
 
   override def toString: String = (this: Literal @unchecked) match {
     case Lit(name)      => name
-    case NegLit(l: Lit) => "¬" + l.name
+    case Neg(l: Lit) => "¬" + l.name
     case _              => ""
   }
 }
 case class Lit(val name: String) extends Literal
-case class NegLit(val l: Lit) extends Literal
+case class Neg(val l: Lit) extends Literal
 

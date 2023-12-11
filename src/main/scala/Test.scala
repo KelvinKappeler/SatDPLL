@@ -24,7 +24,12 @@ object Test {
   def testSat(): Boolean = {
     println("Testing satisfying assignments:")
 
-    val sat1: Formula = Formula(List(Clause(List(q)), Clause(List(q, q.neg, p.neg))))
+    val sat0: Formula = Formula(List(Clause(List(Lit("A")))))
+    print("\tSolving SAT formula ")
+    println(sat0)
+    DPLL.solve(sat0)
+
+    val sat1: Formula = Formula(List(Clause(List(q)), Clause(List(r, r.neg, p.neg))))
     print("\tSolving SAT formula ")
     println(sat1)
     DPLL.solve(sat1)
@@ -32,7 +37,7 @@ object Test {
     val sat2: Formula = Formula(List(Clause(List(q)), Clause(List(q.neg, p.neg))))
     print("\tSolving SAT formula ")
     println(sat2)
-    // DPLL.solve(sat2)
+    DPLL.solve(sat2)
 
     // Satisfying with
     //  q <- false
@@ -55,9 +60,9 @@ object Test {
       Clause(List(s, p.neg, q)),
       Clause(List(s.neg, t.neg, q.neg))
     ))
-    print("\tSolving SAT formula ")
-    println(sat3)
-    println()
+    // print("\tSolving SAT formula ")
+    // println(sat3)
+    // println()
     // DPLL.solve(sat3)
     true
   }
@@ -68,7 +73,7 @@ object Test {
     val unsat1: Formula = Formula(List(Clause(List(q)), Clause(List(q.neg)), Clause(List(q.neg, q))))
     print("\tSolving UNSAT formula ")
     println(unsat1)
-    // DPLL.solve(unsat1)
+    DPLL.solve(unsat1)
 
     val unsat2: Formula = Formula(List(
       Clause(List(t.neg, s, q.neg)),
@@ -87,8 +92,8 @@ object Test {
       Clause(List(s.neg, v, q)),
       Clause(List(s.neg, v.neg, q))
     ))
-    print("\tSolving UNSAT formula ")
-    println(unsat2)
+    // print("\tSolving UNSAT formula ")
+    // println(unsat2)
     // DPLL.solve(unsat2)
     true
   }

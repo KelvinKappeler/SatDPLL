@@ -21,13 +21,26 @@ object DPLL {
     *   A satisfying assignment for the given list of clauses, if one exists.
     */
   def solve(f: Formula): Boolean = {
-    require(f.c.nonEmpty && f.c.head.l.nonEmpty)
+    require(f.clauses.nonEmpty && f.clauses.forall(_.lits.nonEmpty))
+
+    // print("\t\tRemove clauses containing the head: ")
+    // println(f.rmClause(f.clauses.head.lits.head))
+
+    // print("\t\tCleaned clauses: ")
+    // println(f.cleanClauses)
+
+    // print("\t\tPure literal: ")
+    // println(f.getPure)
+
+    // print("\t\tUnit Literal: ")
+    // println(f.getUnit)
+
     // val result = dpll(f.distinct, f.cleanClauses, List())
     // if (result.isDefined)
     //   Some[Map[String, Boolean]](toAssignment(result.get))
     // else None[Map[String, Boolean]]()
     false
-  }//.ensuring(res => res.isInstanceOf[None[Map[String, Boolean]]])
+  }.ensuring(res => !res)
 
   /** Resolve the satisfiability of the given clauses using the DPLL algorithm.
     *
@@ -41,7 +54,7 @@ object DPLL {
     *   A satisfying assignment for the given list of clauses, if one exists.
     */
   private def dpll(unas: List[Literal], f: Formula, as: List[Literal]): Boolean = {
-    if (f.c.isEmpty) return true
+    if (f.clauses.isEmpty) return true
     if (unas.isEmpty) return false
 
     // // unit propagation
@@ -59,12 +72,12 @@ object DPLL {
     // }
 
     // Test if an assignment is possible for the first variable
-    val asTrue = dpll(unas.tail, f.rm(unas.head), unas.head :: as)
-    if asTrue then return true
+    // val asTrue = dpll(unas.tail, f.rm(unas.head), unas.head :: as)
+    // if asTrue then return true
 
     // Do the same with the inverse of the first variable
-    val asNeg = dpll(unas.tail, f.rm(unas.head.neg), unas.head.neg :: as)
-    if asNeg then return false
+    // val asNeg = dpll(unas.tail, f.rm(unas.head.neg), unas.head.neg :: as)
+    // if asNeg then return false
 
     // If neither is possible
     return false
