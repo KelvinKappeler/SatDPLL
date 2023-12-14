@@ -11,6 +11,7 @@ import stainless.lang.Map.ToMapOps
 object Test {
 
   implicit val state: stainless.io.State = stainless.io.newState
+  
   private val q = Lit("Q")
   private val p = Lit("P")
   private val r = Lit("R")
