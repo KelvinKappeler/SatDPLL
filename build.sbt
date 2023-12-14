@@ -1,5 +1,4 @@
 val scala3Version = "3.3.0"
-Compile / run / mainClass := Some("Main")
 
 excludeFilter := HiddenFileFilter || "Transformation.scala" // More files can be appended with the '||' operator
 

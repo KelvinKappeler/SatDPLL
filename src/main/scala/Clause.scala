@@ -1,17 +1,22 @@
 import stainless.collection.{List => List}
-import stainless.collection.List.{mkString => lstToString}
+import stainless.collection.List.*
 
-case class Clause(val lits: List[Literal]) {
+/**
+ * A clause is a disjunction of atoms.
+ */
+case class Clause(val atoms: List[Atom]) {
   override def toString(): String = {
-    def litToString(l: Literal) = l.toString
-    lstToString(this.lits, " V ", litToString)
+    mkString(atoms, " V ", (l: Atom) => l.toString)
   }
 
-  def rmLit(lit: Literal): Clause = {
-    Clause(this.lits.filter(_ != lit))
+  /**
+   * Returns a clause that is the result of removing the given atom from
+   */
+  def rm(atom: Atom): Clause = {
+    Clause(atoms.filter(_ != atom))
   }.ensuring(c => 
-    c.lits.size <= this.lits.size &&
-    c.lits.content.subsetOf(c.lits.content) &&
-    c.lits.forall(_ != lit)  
+    c.atoms.size <= atoms.size &&
+    c.atoms.forall(_ != atom)
   )
+
 }

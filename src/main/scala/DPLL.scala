@@ -7,10 +7,10 @@ import stainless.lang.{Map => Map}
 import stainless.lang.Map.ToMapOps
 import stainless.collection.Nil
 import stainless.io.StdOut.{println => println, print => print}
+import stainless.lang.decreases
 
 object DPLL {
-
-  implicit val state: stainless.io.State = stainless.io.newState
+  //implicit val state: stainless.io.State = stainless.io.newState
 
   /** Returns a satisfying assignment for the given list of clauses, if one
     * exists. Otherwise, returns None.
@@ -21,7 +21,7 @@ object DPLL {
     *   A satisfying assignment for the given list of clauses, if one exists.
     */
   def solve(f: Formula): Boolean = {
-    require(f.clauses.nonEmpty && f.clauses.forall(_.lits.nonEmpty))
+    //require(f.clauses.nonEmpty && f.clauses.forall(_.atoms.nonEmpty))
 
     // print("\t\tRemove clauses containing the head: ")
     // println(f.rmClause(f.clauses.head.lits.head))
@@ -35,52 +35,50 @@ object DPLL {
     // print("\t\tUnit Literal: ")
     // println(f.getUnit)
 
-    // val result = dpll(f.distinct, f.cleanClauses, List())
-    // if (result.isDefined)
-    //   Some[Map[String, Boolean]](toAssignment(result.get))
-    // else None[Map[String, Boolean]]()
-    false
-  }.ensuring(res => !res)
+    val result = dpll(f, f.distinct, List())
+    if (result.isDefined) {
+      //println(toAssignment(result.get))
+      true
+    } else false
+  }
 
   /** Resolve the satisfiability of the given clauses using the DPLL algorithm.
-    *
-    * @param unas
-    *   A list of unassigned variables
-    * @param f
-    *   A list of clauses
-    * @param as
-    *   A list of assigned literals
-    * @return
-    *   A satisfying assignment for the given list of clauses, if one exists.
+    * @param formula A list of clauses
+    * @param unassigned; A list of unassigned atoms
+    * @param assigned A list of assigned atoms
+    * @return A satisfying assignment for the given list of clauses, if one exists.
     */
-  private def dpll(unas: List[Literal], f: Formula, as: List[Literal]): Boolean = {
-    if (f.clauses.isEmpty) return true
-    if (unas.isEmpty) return false
+  def dpll(formula: Formula, unassigned: List[Atom], assigned: List[Atom]): Option[List[Atom]] = {
+    decreases(unassigned)
 
-    // // unit propagation
-    // val unit = f.getUnit
-    // if (unit.isDefined) {
-    //   val term = unit.get
-    //   return dpll(unas, f.rm(term), term :: as)
-    // }
+    if (formula.clauses.isEmpty) return Some(assigned)
+    if (unassigned.isEmpty) return None()
 
-    // // pure literal elimination
-    // val pure = f.getPure
-    // if (pure.isDefined) {
-    //   val term = pure.get
-    //   return dpll(unas, f.rm(term), term :: as)
-    // }
+    // unit propagation
+    val unit = formula.getUnit
+    if (unit.isDefined) {
+      val atom = unit.get
+      //unassigned.contains(atom.asLit)
+      return dpll(formula.rmClause(atom).rm(atom.neg), unassigned.filter(_ != atom.asLit), atom :: assigned)
+    }
+
+    // pure literal elimination
+    val pure = formula.getPure
+    if (pure.isDefined) {
+      val atom = pure.get
+      //unassigned.contains(atom.asLit)
+      return dpll(formula.rmClause(atom).rm(atom.neg), unassigned.filter(_ != atom.asLit), atom :: assigned)
+    }
 
     // Test if an assignment is possible for the first variable
-    // val asTrue = dpll(unas.tail, f.rm(unas.head), unas.head :: as)
-    // if asTrue then return true
+    val asTrue = dpll(formula.rmClause(unassigned.head).rm(unassigned.head.neg), unassigned.tail, unassigned.head :: assigned)
+    if (asTrue.isDefined) return Some(asTrue.get)
 
     // Do the same with the inverse of the first variable
-    // val asNeg = dpll(unas.tail, f.rm(unas.head.neg), unas.head.neg :: as)
-    // if asNeg then return false
+    val asFalse = dpll(formula.rmClause(unassigned.head.neg).rm(unassigned.head), unassigned.tail, unassigned.head.neg :: assigned)
+    if (asFalse.isDefined) return Some(asFalse.get)
 
-    // If neither is possible
-    return false
+    None()
   }
 
   /** Returns an assignment from the given list of literals.
@@ -90,10 +88,10 @@ object DPLL {
     * @return
     *   An assignment from the given list of literals.
     */
-//   private def toAssignment(lits: List[Literal]): Map[String, Boolean] = {
-//     lits.map {
-//       case Lit(name)         => (name, true)
-//       case NegLit(Lit(name)) => (name, false)
-//     }.toMap
-//   }
+  /*def toAssignment(atoms: List[Atom]): Map[String, Boolean] = {
+    atoms.map {
+      case Lit(name) => (name, true)
+      case Neg(Lit(name)) => (name, false)
+    }.toMap
+  }*/
 }
