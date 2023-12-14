@@ -42,14 +42,18 @@ class Formula(val clauses: List[Clause]) {
       && this.clauses.find(c => c.lits.contains(lit)).isDefined
     )
     val f = Formula(this.clauses.filter(c => !c.lits.contains(lit)))
-    f.clauses.forall(c => !c.lits.contains(lit))
-    // this.clauses.filter(c => c.lits.contains(lit)).forall(c => !f.clauses.contains(c))
+    I 
+    this.clauses.filter(c => c.lits.contains(lit)).forall(c => {
+      f.clauses.forall(cl => cl != c)
+    })
     f
   } ensuring { res => 
     res.clauses.size <= this.clauses.size                 // verified
     && res.clauses.content.subsetOf(this.clauses.content) // verified
     && res.clauses.forall(c => !c.lits.contains(lit))     // verified
-    && this.clauses.filter(c => c.lits.contains(lit)).size >= 1
+    && this.clauses.filter(c => c.lits.contains(lit)).forall(c => {
+      res.clauses.forall(cl => cl != c)
+    })
   }
     
   /** Returns a unit clause, if one exists. A unit clause is a clause with only
