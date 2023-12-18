@@ -18,7 +18,7 @@ case class Formula(val clauses: List[Clause]) {
     * Returns the set of all positive distinct atoms in the formula.
     * @return the set of all positive distinct atoms in the formula.
     */
-  def distinct: List[Atom] = flatten.map(atom => atom.asLit).unique
+  def distinct: List[Atom] = flatten.map(_.asLit).unique
 
   /**
     * Returns a list of all atoms in the formula.
@@ -32,10 +32,9 @@ case class Formula(val clauses: List[Clause]) {
    * @return A new formula not containing the given atom.
   */
   def rm(atom: Atom): Formula = {
-    Formula(clauses.map(_.rm(atom)).filter(_.atoms.nonEmpty))
+    Formula(clauses.map(_.rm(atom)))
     }.ensuring(res => 
-      res.clauses.size <= clauses.size &&
-      res.clauses.forall(_.atoms.nonEmpty)
+      res.clauses.size <= clauses.size
       //   !res.flatten.contains(lit)
       //   !res.flatten.exists(_ == lit)
       //   res.flatten.content.subsetOf(this.flatten.content) &&

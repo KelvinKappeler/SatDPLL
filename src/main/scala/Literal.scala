@@ -32,5 +32,7 @@ sealed abstract class Atom {
   }
 }
 
-case class Lit(val name: String) extends Atom
+case class Lit(val name: String) extends Atom {
+  require(name != "")
+}
 case class Neg(val l: Lit) extends Atom

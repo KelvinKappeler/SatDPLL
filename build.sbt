@@ -1,7 +1,5 @@
 val scala3Version = "3.3.0"
 
-excludeFilter := HiddenFileFilter || "Transformation.scala" // More files can be appended with the '||' operator
-
 lazy val root = project
   .in(file("."))
   .enablePlugins(StainlessPlugin)

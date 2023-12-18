@@ -1,12 +1,12 @@
 import stainless.collection.{List => List}
 import stainless.io.StdOut.{println => println, print => print}
-import stainless.collection.{List => List}
 import stainless.collection.ListOps.FlattenableListOps
 import stainless.lang.Option as Option
 import stainless.lang.Some as Some
 import stainless.lang.None as None
 import stainless.lang.{Map => Map}
 import stainless.lang.Map.ToMapOps
+import stainless.annotation.*
 
 object Test {
 
@@ -20,25 +20,33 @@ object Test {
   private val u = Lit("U")
   private val v = Lit("V")
 
-  def testAll(): Boolean = testSat() && testUnsat()
+  @ignore def testAll(): Unit = {
+    testSat()
+    testUnsat()
+  }
 
-  def testSat(): Boolean = {
+  @ignore def testSat(): Unit = {
     println("Testing satisfying assignments:")
 
+    println("=====================")
     val sat0: Formula = Formula(List(Clause(List(Lit("A")))))
-    print("\tSolving SAT formula ")
-    println(sat0)
-    //DPLL.solve(sat0)
+    println("Solving SAT formula " + sat0.toString)
+    DPLL.solve(sat0)
+
+    println("=====================")
 
     val sat1: Formula = Formula(List(Clause(List(q)), Clause(List(r, r.neg, p.neg))))
-    print("\tSolving SAT formula ")
-    println(sat1)
-    //DPLL.solve(sat1)
+    println("Solving SAT formula " + sat1.toString)
+    DPLL.solve(sat1)
+
+    println("=====================")
 
     val sat2: Formula = Formula(List(Clause(List(q)), Clause(List(q.neg, p.neg))))
-    print("\tSolving SAT formula ")
+    println("Solving SAT formula " + sat2.toString)
     println(sat2)
-    //DPLL.solve(sat2)
+    DPLL.solve(sat2)
+
+    println("=====================")
 
     // Satisfying with
     //  q <- false
@@ -61,20 +69,18 @@ object Test {
       Clause(List(s, p.neg, q)),
       Clause(List(s.neg, t.neg, q.neg))
     ))
-    // print("\tSolving SAT formula ")
-    // println(sat3)
-    // println()
-    // DPLL.solve(sat3)
-    true
+
+    println("Solving SAT formula " + sat3.toString)
+    DPLL.solve(sat3)
   }
 
-  def testUnsat(): Boolean = {
+  @ignore def testUnsat(): Unit = {
     println("Testing unsatisfying assignments")
 
     val unsat1: Formula = Formula(List(Clause(List(q)), Clause(List(q.neg)), Clause(List(q.neg, q))))
     print("\tSolving UNSAT formula ")
     println(unsat1)
-    //DPLL.solve(unsat1)
+    DPLL.solve(unsat1)
 
     val unsat2: Formula = Formula(List(
       Clause(List(t.neg, s, q.neg)),
@@ -88,14 +94,11 @@ object Test {
       Clause(List(p, r.neg, t)),
       Clause(List(t.neg, r, q)),
       Clause(List(s, p.neg, q)),
-      Clause(List(s.neg, t.neg, q.neg)),
-      // the following 2 clauses makes the formula unsat
-      Clause(List(s.neg, v, q)),
-      Clause(List(s.neg, v.neg, q))
+      Clause(List(s, t, q)),
+      Clause(List(u.neg)),
     ))
-    // print("\tSolving UNSAT formula ")
-    // println(unsat2)
-    // DPLL.solve(unsat2)
-    true
+    print("\tSolving UNSAT formula ")
+    println(unsat2)
+    DPLL.solve(unsat2)
   }
 }
