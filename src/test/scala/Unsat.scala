@@ -7,10 +7,14 @@ import stainless.collection.Nil
 class Unsat extends munit.FunSuite {
   
   val a = Atom("A")
+  val b = Atom("B")
+
+  test("Not pure formula") {
+    assert(!DPLL.solve(Formula(List(Clause(List(a)), Clause(List(a.neg))))).isDefined)
+  }
 
   test("Formula 1") {
-    val unsat1: Formula = Formula(List(Clause(List(a)), Clause(List(a.neg))))
-    assert(!DPLL.solve(unsat1))
+    assert(!DPLL.solve(Formula(List(Clause(List(a)), Clause(List(a.neg, b)), Clause(List(b.neg))))).isDefined)
   }
 
 }

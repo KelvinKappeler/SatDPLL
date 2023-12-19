@@ -7,13 +7,9 @@ import stainless.lang.{Map => Map}
 import stainless.lang.Map.ToMapOps
 import stainless.collection.Nil
 import stainless.collection.Cons as Cons
-import stainless.io.StdOut.{println => println, print => print}
 import stainless.lang.decreases
 
-
 object DPLL {
-  implicit val state: stainless.io.State = stainless.io.newState
-
   /** Returns a satisfying assignment for the given list of clauses, if one
     * exists. Otherwise, returns None.
     *
@@ -22,7 +18,7 @@ object DPLL {
     * @return
     *   A satisfying assignment for the given list of clauses, if one exists.
     */
-  def solve(f: Formula): Boolean = {
+  def solve(f: Formula): Option[List[Literal]] = {
     def dpll(formula: Formula, unassigned: List[Literal], assigned: List[Literal], compteur: BigInt): Option[List[Literal]] = {
       decreases(compteur)
       require(compteur >= 0)
@@ -54,30 +50,31 @@ object DPLL {
       None()
     }
 
-    val result = dpll(f, f.distinct, List(), 10000)
-    if (result.isDefined) {
-      println(toAssignment(result.get))
-      true
-    } else {
-      println("No solution found")
-      false
-    }
+    dpll(f, f.distinct, List(), 10000)
    }
 
-  /** Returns an assignment from the given list of literals.
+  /** Returns the answer from the given list of literals as a string.
     *
     * @param literals
     *   A list of literals
     * @return
-    *   An assignment from the given list of literals.
+    *   A string from the given list of literals
     */
-  def toAssignment(lits: List[Literal]): String = {
-    lits match {
-      case Nil() => ""
-      case Cons(head, tail) => head match {
-        case Atom(name) => name + " -> true\n" + toAssignment(tail)
-        case Neg(Atom(name)) => name + " -> false\n" + toAssignment(tail)
+  def answer(optLits: Option[List[Literal]]): String = {
+    def toString(lits: List[Literal]): String = {
+      decreases(lits)
+
+      lits match {
+        case Nil() => ""
+        case Cons(head, tail) => head match {
+          case Atom(name) => name + " -> true\n" + toString(tail)
+          case Neg(Atom(name)) => name + " -> false\n" + toString(tail)
+        }
       }
+    }
+    optLits match {
+      case None() => "UNSAT"
+      case Some(lits) => toString(lits)
     }
   }
 }

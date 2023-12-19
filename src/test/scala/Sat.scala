@@ -14,26 +14,24 @@ class Sat extends munit.FunSuite {
 
   test("Empty clauses") {
     val emptyFormula: Formula = Formula(Nil())
-    assert(DPLL.solve(emptyFormula))
+    assert(DPLL.solve(emptyFormula).isDefined)
+  }
+
+  test("Unit Formula") {
+    val unitFormula: Formula = Formula(List(Clause(List(a))))
+    assert(DPLL.solve(unitFormula).isDefined)
   }
 
   test("Formula 1") {
-    val sat1: Formula = Formula(List(Clause(List(a))))
-    assert(DPLL.solve(sat1))
+    assert(DPLL.solve(Formula(List(Clause(List(a)), Clause(List(b, b.neg, c.neg))))).isDefined)
   }
 
   test("Formula 2") {
-    val sat2: Formula = Formula(List(Clause(List(a)), Clause(List(b, b.neg, c.neg))))
-    assert(DPLL.solve(sat2))
+    assert(DPLL.solve(Formula(List(Clause(List(a)), Clause(List(a.neg, b.neg))))).isDefined)
   }
 
   test("Formula 3") {
-    val sat3: Formula = Formula(List(Clause(List(a)), Clause(List(a.neg, b.neg))))
-    assert(DPLL.solve(sat3))
-  }
-
-  test("Formula 4") {
-    val sat4: Formula = Formula(List(
+    val satFormula: Formula = Formula(List(
       Clause(List(a.neg, b, c.neg)),
       Clause(List(d.neg, b.neg, e.neg)),
       Clause(List(b.neg, d.neg, c.neg)),
@@ -47,7 +45,7 @@ class Sat extends munit.FunSuite {
       Clause(List(b, e.neg, c)),
       Clause(List(b.neg, a.neg, c.neg))
     ))
-    assert(DPLL.solve(sat4))
+    assert(DPLL.solve(satFormula).isDefined)
   }
 
 }
