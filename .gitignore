@@ -20,6 +20,7 @@ stainless.bat
 stainless
 stainless-cli
 .stainless-cache
+stainless.conf
 
 stainless-stack-trace.txt
 .scalafmt.conf
