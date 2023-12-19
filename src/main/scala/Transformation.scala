@@ -1,5 +1,5 @@
 import stainless.collection.{List => List}
-import stainless.annotation.*
+import stainless.annotation.ignore
 import stainless.lang.decreases
 
 object Transformation {
@@ -53,19 +53,19 @@ object Transformation {
     * @return
     *   A list of clauses from the given term.
     */
-    @ignore def toClauses: List[List[Atom]] = {
-      def rec(term: Term): List[Atom] = {
+    @ignore def toClauses: List[List[Literal]] = {
+      def rec(term: Term): List[Literal] = {
         term match {
           case Or(left, right) => rec(left) ++ rec(right)
-          case Var(name)       => List(Lit(name))
-          case Not(Var(name))  => List(Neg(Lit(name)))
+          case Var(name)       => List(Atom(name))
+          case Not(Var(name))  => List(Neg(Atom(name)))
           case _               => List()
         }
       }
 
       toNNF.toCNF match {
-        case Var(name)        => List(List(Lit(name)))
-        case Not(Var(name))   => List(List(Neg(Lit(name))))
+        case Var(name)        => List(List(Atom(name)))
+        case Not(Var(name))   => List(List(Neg(Atom(name))))
         case And(left, right) => left.toClauses ++ right.toClauses
         case Or(left, right)  => List(rec(left) ++ rec(right))
         case _                => List()
@@ -84,9 +84,7 @@ object Transformation {
 
   }
 
-  case class Var(name: String) extends Term {
-    require(name != "")
-  }
+  case class Var(name: String) extends Term { require(name != "") }
   case class And(left: Term, right: Term) extends Term
   case class Or(left: Term, right: Term) extends Term
   case class Not(term: Term) extends Term

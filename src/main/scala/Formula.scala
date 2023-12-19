@@ -15,68 +15,54 @@ case class Formula(val clauses: List[Clause]) {
   }
   
   /**
-    * Returns the set of all positive distinct atoms in the formula.
-    * @return the set of all positive distinct atoms in the formula.
+    * Returns the set of all positive distinct literals in the formula.
+    * @return the set of all positive distinct literals in the formula.
     */
-  def distinct: List[Atom] = flatten.map(_.asLit).unique
+  def distinct: List[Literal] = flatten.map(_.positive).unique
 
   /**
-    * Returns a list of all atoms in the formula.
-    * @return a list of all atoms in the formula.
+    * Returns a list of all literals in the formula.
+    * @return a list of all literals in the formula.
     */
-  def flatten: List[Atom] = clauses.map(_.atoms).flatten
+  def flatten: List[Literal] = clauses.map(_.lits).flatten
 
   /**
-   * Removes atom from each clause in the formula.
-   * @param atom The atom to remove.
-   * @return A new formula not containing the given atom.
+   * Removes literal from each clause in the formula.
+   * @param atom The literal to remove.
+   * @return A new formula not containing the given literal.
   */
-  def rm(atom: Atom): Formula = {
-    Formula(clauses.map(_.rm(atom)))
-    }.ensuring(res => 
-      res.clauses.size <= clauses.size
-      //   !res.flatten.contains(lit)
-      //   !res.flatten.exists(_ == lit)
-      //   res.flatten.content.subsetOf(this.flatten.content) &&
-      //  res.c.forall(!_.lits.contains(lit))
-   )
+  def rm(lit: Literal): Formula = {
+    Formula(clauses.map(_.rm(lit)))
+    }.ensuring(_.clauses.size <= clauses.size)
 
   /**
-    * Returns a formula that is the result of removing clauses that contain the given atom.
-    * @param atom The atom to remove.
-    * @return A new formula not containing clauses that contain the given atom.
+    * Returns a formula that is the result of removing clauses that contain the given literal.
+    * @param atom The literal to remove.
+    * @return A new formula not containing any clauses with the given literal.
     */
-  def rmClause(atom: Atom): Formula = {
-    require(clauses.nonEmpty 
-      /*&& clauses.forall(_.atoms.nonEmpty)*/
-      /*&& clauses.find(c => c.atoms.contains(atom)).isDefined*/
-    )
-    Formula(clauses.filter(c => !c.atoms.contains(atom)))
+  def rmClause(lit: Literal): Formula = {
+    require(clauses.nonEmpty)
+    Formula(clauses.filter(c => !c.lits.contains(lit)))
   } ensuring { res => 
     res.clauses.size <= clauses.size
-    && res.clauses.forall(c => !c.atoms.contains(atom))
-    //&& clauses.filter(c => c.atoms.contains(atom)).size >= 1
+    && res.clauses.forall(c => !c.lits.contains(lit))
   }
     
   /** Returns a unit clause, if one exists. A unit clause is a clause with only
-  * one atom, i.e Lit or Neg(Lit).
+  * one literal, i.e Atom or Neg(atom).
   *
   * @return
   *   A unit clause, if one exists.
   */
-  def getUnit: Option[Atom] = {
-    require(clauses.nonEmpty) // && clauses.forall(_.atoms.nonEmpty))
-    val clause = clauses.find(_.atoms.size == 1)
+  def getUnit: Option[Literal] = {
+    require(clauses.nonEmpty)
+    val clause = clauses.find(_.lits.size == 1)
     if (clause.isDefined) {
-      Some(clause.get.atoms.head)
+      Some(clause.get.lits.head)
     } else {
       None()
     }
-  }/*.ensuring { res =>
-    if (res.isDefined) 
-    clauses.exists(c => c.atoms.contains(res.get) && c.atoms.size == 1) 
-    else clauses.forall(_.atoms.size != 1)
-  }*/
+  }
 
   /**
     * Returns a pure literal, if one exists. A pure literal is a literal that
@@ -88,44 +74,11 @@ case class Formula(val clauses: List[Clause]) {
     * @return
     *   A pure literal, if one exists.
     */
-  def getPure: Option[Atom] = {
-    val atoms = flatten
-    atoms.find(atom => atom match
-      case l@Lit(_) => !atoms.contains(Neg(l))
-      case Neg(l) => !atoms.contains(l)
+  def getPure: Option[Literal] = {
+    val lits = flatten
+    lits.find(lit => lit match
+      case atom@Atom(_) => !lits.contains(Neg(atom))
+      case Neg(atom) => !lits.contains(atom)
     )
-   }/*.ensuring(res =>
-     val atoms = flatten
-     res match {
-       case Some(atom) =>
-         atom match {
-           case l@Lit(_) => !atoms.contains(Neg(l))
-           case Neg(l: Lit) => !atoms.contains(l)
-         }
-       case None() =>
-         atoms.forall(l => atoms.contains(l.neg)) // not verified
-     }
-   )*/
-
-
-
-  /** Filters the given list of clauses by removing all clauses that contain
-  * some literal and its inverse and remove all duplicate literals from each
-  * clause.
-  *
-  * @param clauses
-  *   A list of clauses
-  * @return
-  *   A list of clauses with no duplicate literals and no clauses that contain
-  *   some literal and its inverse.
-  * 
-  * Commented out because it is only a "nice-to-have" function, and not necessary.
-  */
-  // def cleanClauses: Formula = {
-  //   val filtered = this.clauses map { c => Clause(c.lits filter { l => !c.lits.contains(l.neg) }) }
-  //   Formula(filtered.map(c => Clause(c.lits.unique)).filterNot(_.lits.isEmpty))
-  // }.ensuring { res =>
-  //   res.clauses.forall { c => !c.lits.exists(lit => c.lits.contains(lit.neg)) } &&
-  //   res.clauses.forall(_.lits.nonEmpty)
-  // }
+   }
 }

@@ -1,38 +1,36 @@
 /**
- * An atom is a literal or a negated literal.
+ * A literal is an atom or its negation.
  */
-sealed abstract class Atom {
+sealed abstract class Literal {
   /**
-    * Returns the negation of this atom.
-    * @return The negation of this atom.
+    * Returns the negation of the literal.
+    * @return The negation of the literal.
     */
-  def neg: Atom = {
+  def neg: Literal = {
     this match {
-      case l@Lit(name) => Neg(l)
-      case Neg(l) => l
+      case atom@Atom(_) => Neg(atom)
+      case Neg(atom) => atom
     }
   }.ensuring(_ != this)
 
   /**
-    * Returns the literal representation of this atom.
-    * @return The literal representation of this atom.
+    * Returns the positive form of the literal.
+    * @return The positive form of the literal.
     */
-  def asLit: Lit = {
+  def positive: Atom = {
     this match {
-      case l@Lit(name) => l
-      case Neg(l) => l
+      case atom@Atom(_) => atom
+      case Neg(atom) => atom
     }
   }
 
   override def toString: String = {
     this match {
-      case Lit(name) => name
-      case Neg(l: Lit) => "¬" + l.name
+      case Atom(name) => name
+      case Neg(Atom(name)) => "¬" + name
     }
   }
 }
 
-case class Lit(val name: String) extends Atom {
-  require(name != "")
-}
-case class Neg(val l: Lit) extends Atom
+case class Atom(val name: String) extends Literal { require(name != "") }
+case class Neg(val atom: Atom) extends Literal

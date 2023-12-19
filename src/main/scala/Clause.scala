@@ -2,21 +2,21 @@ import stainless.collection.{List => List}
 import stainless.collection.List.*
 
 /**
- * A clause is a disjunction of atoms.
+ * A clause is a disjunction of literals.
  */
-case class Clause(val atoms: List[Atom]) {
+case class Clause(val lits: List[Literal]) {
   override def toString(): String = {
-    mkString(atoms, " V ", (l: Atom) => l.toString)
+    mkString(lits, " V ", (l: Literal) => l.toString)
   }
 
   /**
-   * Returns a clause that is the result of removing the given atom from
+   * Returns a clause that is the result of removing the given literal from
    */
-  def rm(atom: Atom): Clause = {
-    Clause(atoms.filter(_ != atom))
+  def rm(lit: Literal): Clause = {
+    Clause(lits.filter(_ != lit))
   }.ensuring(c => 
-    c.atoms.size <= atoms.size &&
-    c.atoms.forall(_ != atom)
+    c.lits.size <= lits.size &&
+    c.lits.forall(_ != lit)
   )
 
 }

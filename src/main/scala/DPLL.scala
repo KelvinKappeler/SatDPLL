@@ -9,7 +9,6 @@ import stainless.collection.Nil
 import stainless.collection.Cons as Cons
 import stainless.io.StdOut.{println => println, print => print}
 import stainless.lang.decreases
-import stainless.annotation.*
 
 
 object DPLL {
@@ -24,7 +23,7 @@ object DPLL {
     *   A satisfying assignment for the given list of clauses, if one exists.
     */
   def solve(f: Formula): Boolean = {
-    def dpll(formula: Formula, unassigned: List[Atom], assigned: List[Atom], compteur: BigInt): Option[List[Atom]] = {
+    def dpll(formula: Formula, unassigned: List[Literal], assigned: List[Literal], compteur: BigInt): Option[List[Literal]] = {
       decreases(compteur)
       require(compteur >= 0)
       if (compteur == 0) return None()
@@ -34,15 +33,15 @@ object DPLL {
       // unit propagation
       val unit = formula.getUnit
       if (unit.isDefined) {
-        val atom = unit.get
-        return dpll(formula.rmClause(atom).rm(atom.neg), unassigned.filter(_ != atom.asLit), atom :: assigned, compteur - 1)
+        val lit = unit.get
+        return dpll(formula.rmClause(lit).rm(lit.neg), unassigned.filter(_ != lit.positive), lit :: assigned, compteur - 1)
       }
 
       // pure literal elimination
       val pure = formula.getPure
       if (pure.isDefined) {
-        val atom = pure.get
-        return dpll(formula.rmClause(atom).rm(atom.neg), unassigned.filter(_ != atom.asLit), atom :: assigned, compteur - 1)
+        val lit = pure.get
+        return dpll(formula.rmClause(lit).rm(lit.neg), unassigned.filter(_ != lit.positive), lit :: assigned, compteur - 1)
       }
 
       // Test if an assignment is possible for the first variable
@@ -72,12 +71,12 @@ object DPLL {
     * @return
     *   An assignment from the given list of literals.
     */
-  @ignore def toAssignment(atoms: List[Atom]): String = {
-    atoms match {
+  def toAssignment(lits: List[Literal]): String = {
+    lits match {
       case Nil() => ""
       case Cons(head, tail) => head match {
-        case Lit(name) => name + " -> true\n" + toAssignment(tail)
-        case Neg(Lit(name)) => name + " -> false\n" + toAssignment(tail)
+        case Atom(name) => name + " -> true\n" + toAssignment(tail)
+        case Neg(Atom(name)) => name + " -> false\n" + toAssignment(tail)
       }
     }
   }
