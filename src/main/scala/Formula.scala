@@ -29,6 +29,8 @@ case class Formula(val clauses: List[Clause]) {
     */
   def flatten: List[Literal] = clauses.map(_.lits).flatten
 
+  def unique: Formula = Formula(clauses.unique)
+
   private def forall(p: Clause => Boolean): Boolean = this.clauses match {
     case Nil() => true
     case Cons(h, t) => p(h) && t.forall(p)
@@ -56,12 +58,23 @@ case class Formula(val clauses: List[Clause]) {
     */
   def rmClause(lit: Literal): Formula = {
     require(clauses.nonEmpty)
-    Formula(clauses.filter(c => !c.lits.contains(lit)))
+    require(clauses == distinct)
+    decreases(clauses.size)
+    clauses match {
+      case Nil() => Formula(List())
+      case Cons(h, Nil()) => {
+        if h.contains(lit) then Formula(List(h))
+        else Formula(List())
+      }
+      case Cons(h, t) if h.contains(lit) => Formula(t).rmClause(lit)
+      case Cons(h, t) => Formula(Cons(h, Formula(t).rmClause(lit).clauses))
+    }
+    // Formula(clauses.filter(c => !c.contains(lit)))
   } ensuring { res => 
     res.clauses.size <= clauses.size
-    && res.clauses.forall(c => !c.lits.contains(lit))
-    // need another postcondition to express that the result has clauses
+    // need the following postcondition to express that the result has clauses
     // that previously contained lit that is not there anymore
+    && (if this.clauses.head.contains(lit) then res.clauses.head != this.clauses.head else true)
   }
     
   /** Returns a unit clause, if one exists. A unit clause is a clause with only
