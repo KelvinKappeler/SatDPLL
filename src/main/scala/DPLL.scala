@@ -19,10 +19,21 @@ object DPLL {
     *   A satisfying assignment for the given list of clauses, if one exists.
     */
   def solve(f: Formula): Option[List[Literal]] = {
-    def dpll(formula: Formula, unassigned: List[Literal], assigned: List[Literal], compteur: BigInt): Option[List[Literal]] = {
-      decreases(compteur)
-      require(compteur >= 0)
-      if (compteur == 0) return None()
+    def dpll(formula: Formula, unassigned: List[Literal], assigned: List[Literal]): Option[List[Literal]] = {
+      decreases(unassigned.size)
+      def removeLit(lit: Literal): List[Literal] = {
+        require(!unassigned.isEmpty)
+        def putAtEndOfList(lit: Literal, lits: List[Literal]): List[Literal] = {
+          decreases(lits)
+          lits match {
+            case Nil() => Nil()
+            case Cons(head, tail) => if (head == lit) lits.reverse else Cons(head, putAtEndOfList(lit, tail))
+          }
+        }.ensuring(res => res.size == lits.size)
+
+        putAtEndOfList(lit, unassigned).reverse.tail
+      }.ensuring(res => res.size < unassigned.size)
+
       if (formula.clauses.isEmpty) return Some(assigned)
       if (unassigned.isEmpty) return None()
 
@@ -30,21 +41,23 @@ object DPLL {
       val unit = formula.getUnit
       if (unit.isDefined) {
         val lit = unit.get
-        return dpll(formula.rmClause(lit).rm(lit.neg), unassigned.filter(_ != lit.positive), lit :: assigned, compteur - 1)
+        removeLit(lit.positive).size < unassigned.size
+        return dpll(formula.rmClause(lit).rm(lit.neg), removeLit(lit.positive), lit :: assigned)
       }
 
       // pure literal elimination
       val pure = formula.getPure
       if (pure.isDefined) {
         val lit = pure.get
-        return dpll(formula.rmClause(lit).rm(lit.neg), unassigned.filter(_ != lit.positive), lit :: assigned, compteur - 1)
+        removeLit(lit.positive).size < unassigned.size
+        return dpll(formula.rmClause(lit).rm(lit.neg), removeLit(lit.positive), lit :: assigned)
       }
 
       // Test if an assignment is possible for the first variable
-      val asTrue = dpll(formula.rmClause(unassigned.head).rm(unassigned.head.neg), unassigned.tail, unassigned.head :: assigned, compteur - 1)
+      val asTrue = dpll(formula.rmClause(unassigned.head).rm(unassigned.head.neg), unassigned.tail, unassigned.head :: assigned)
 
       // Do the same with the inverse of the first variable
-      val asFalse = dpll(formula.rmClause(unassigned.head.neg).rm(unassigned.head), unassigned.tail, unassigned.head.neg :: assigned, compteur - 1)
+      val asFalse = dpll(formula.rmClause(unassigned.head.neg).rm(unassigned.head), unassigned.tail, unassigned.head.neg :: assigned)
       if (asFalse.isDefined) return Some(asFalse.get)
 
       None()
