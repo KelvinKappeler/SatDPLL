@@ -29,14 +29,22 @@ case class Formula(val clauses: List[Clause]) {
     */
   def flatten: List[Literal] = clauses.map(_.lits).flatten
 
-  def unique: Formula = Formula(clauses.unique)
-
-  private def forall(p: Clause => Boolean): Boolean = this.clauses match {
-    case Nil() => true
-    case Cons(h, t) => p(h) && t.forall(p)
+  def unique: Formula = {
+    decreases(clauses.size)
+    clauses match {
+      case Nil() => Formula(List())
+        case Cons(h, t) =>
+        Formula(Cons(h, Formula(t - h).unique.clauses))
+    }
   }
 
-  def rm(lit: Literal): Formula = { 
+  def assign(lit: Literal): Formula = {
+    require(clauses.nonEmpty)
+    require(clauses == distinct)
+    rmClause(lit).rm(lit.neg)
+  }
+
+  private def rm(lit: Literal): Formula = { 
     decreases(this.clauses.size)
     this.clauses match {
       case Nil() => Formula(List())
@@ -56,7 +64,7 @@ case class Formula(val clauses: List[Clause]) {
     * @param atom The literal to remove.
     * @return A new formula not containing any clauses with the given literal.
     */
-  def rmClause(lit: Literal): Formula = {
+  private def rmClause(lit: Literal): Formula = {
     require(clauses.nonEmpty)
     require(clauses == distinct)
     decreases(clauses.size)
@@ -76,8 +84,8 @@ case class Formula(val clauses: List[Clause]) {
     // that previously contained lit that is not there anymore
     && (if this.clauses.head.contains(lit) then res.clauses.head != this.clauses.head else true)
   }
-    
-  /** Returns a unit clause, if one exists. A unit clause is a clause with only
+
+    /** Returns a unit clause, if one exists. A unit clause is a clause with only
   * one literal, i.e Atom or Neg(atom).
   *
   * @return
@@ -109,5 +117,11 @@ case class Formula(val clauses: List[Clause]) {
       case atom@Atom(_) => !lits.contains(Neg(atom))
       case Neg(atom) => !lits.contains(atom)
     )
-   }
+  }
+
+  private def forall(p: Clause => Boolean): Boolean = this.clauses match {
+    case Nil() => true
+    case Cons(h, t) => p(h) && t.forall(p)
+  }
+  
 }

@@ -21,6 +21,8 @@ object DPLL {
   def solve(f: Formula): Option[List[Literal]] = {
     def dpll(formula: Formula, unassigned: List[Literal], assigned: List[Literal]): Option[List[Literal]] = {
       decreases(unassigned.size)
+      require(formula.clauses == formula.distinct)
+
       def removeLit(lit: Literal): List[Literal] = {
         require(!unassigned.isEmpty)
         def putAtEndOfList(lit: Literal, lits: List[Literal]): List[Literal] = {
@@ -42,7 +44,8 @@ object DPLL {
       if (unit.isDefined) {
         val lit = unit.get
         removeLit(lit.positive).size < unassigned.size
-        return dpll(formula.rmClause(lit).rm(lit.neg), removeLit(lit.positive), lit :: assigned)
+        // return dpll(formula.rmClause(lit).rm(lit.neg), removeLit(lit.positive), lit :: assigned)
+        return dpll(formula.assign(lit), removeLit(lit.positive), lit :: assigned)
       }
 
       // pure literal elimination
@@ -50,20 +53,20 @@ object DPLL {
       if (pure.isDefined) {
         val lit = pure.get
         removeLit(lit.positive).size < unassigned.size
-        return dpll(formula.rmClause(lit).rm(lit.neg), removeLit(lit.positive), lit :: assigned)
+        return dpll(formula.assign(lit), removeLit(lit.positive), lit :: assigned)
       }
 
       // Test if an assignment is possible for the first variable
-      val asTrue = dpll(formula.rmClause(unassigned.head).rm(unassigned.head.neg), unassigned.tail, unassigned.head :: assigned)
+      val asTrue = dpll(formula.assign(unassigned.head), unassigned.tail, unassigned.head :: assigned)
 
       // Do the same with the inverse of the first variable
-      val asFalse = dpll(formula.rmClause(unassigned.head.neg).rm(unassigned.head), unassigned.tail, unassigned.head.neg :: assigned)
+      val asFalse = dpll(formula.assign(unassigned.head.neg), unassigned.tail, unassigned.head.neg :: assigned)
       if (asFalse.isDefined) return Some(asFalse.get)
 
       None()
     }
 
-    dpll(f.unique, f.distinct, List(), 10000)
+    dpll(f.unique, f.distinct, List())
    }
 
   /** Returns the answer from the given list of literals as a string.
