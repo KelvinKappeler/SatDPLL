@@ -1,10 +1,13 @@
 import stainless.collection.{List => List}
+import stainless.collection.{Cons => Cons}
 import stainless.collection.List.*
 import stainless.collection.ListOps.FlattenableListOps
 import stainless.lang.Option as Option
 import stainless.lang.Some as Some
 import stainless.lang.None as None
 import stainless.collection.Nil
+import stainless.lang.decreases
+
 
 /**
  * A formula is a conjunction of clauses.
@@ -26,14 +29,25 @@ case class Formula(val clauses: List[Clause]) {
     */
   def flatten: List[Literal] = clauses.map(_.lits).flatten
 
-  /**
-   * Removes literal from each clause in the formula.
-   * @param atom The literal to remove.
-   * @return A new formula not containing the given literal.
-  */
-  def rm(lit: Literal): Formula = {
-    Formula(clauses.map(_.rm(lit)))
-    }.ensuring(_.clauses.size <= clauses.size)
+  private def forall(p: Clause => Boolean): Boolean = this.clauses match {
+    case Nil() => true
+    case Cons(h, t) => p(h) && t.forall(p)
+  }
+
+  def rm(lit: Literal): Formula = { 
+    decreases(this.clauses.size)
+    this.clauses match {
+      case Nil() => Formula(List())
+      case Cons(h, t) => {
+        val filtered = h.filterNotLit(lit)
+        if filtered.lits.isEmpty then Formula(t).rm(lit)
+        else Formula(Cons(filtered, Formula(t).rm(lit).clauses))
+      }
+    } 
+  } ensuring { res => 
+    res.clauses.size <= this.clauses.size 
+    && res.forall(c => !c.contains(lit))
+  }
 
   /**
     * Returns a formula that is the result of removing clauses that contain the given literal.
@@ -46,6 +60,8 @@ case class Formula(val clauses: List[Clause]) {
   } ensuring { res => 
     res.clauses.size <= clauses.size
     && res.clauses.forall(c => !c.lits.contains(lit))
+    // need another postcondition to express that the result has clauses
+    // that previously contained lit that is not there anymore
   }
     
   /** Returns a unit clause, if one exists. A unit clause is a clause with only
