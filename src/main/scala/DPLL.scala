@@ -63,7 +63,7 @@ object DPLL {
       None()
     }
 
-    dpll(f, f.distinct, List())
+    dpll(f.unique, f.distinct, List(), 10000)
    }
 
   /** Returns the answer from the given list of literals as a string.
