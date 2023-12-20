@@ -24,3 +24,5 @@ stainless.conf
 
 stainless-stack-trace.txt
 .scalafmt.conf
+stainless-cli 2
+stainless2
