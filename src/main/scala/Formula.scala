@@ -31,7 +31,6 @@ case class Formula(val clauses: List[Clause]) {
 
   def assign(lit: Literal): Formula = {
     require(clauses.nonEmpty)
-    // require(this == unique)
     rmClause(lit).rm(lit.neg)
   }
 
@@ -41,8 +40,7 @@ case class Formula(val clauses: List[Clause]) {
       case Nil() => Formula(List())
       case Cons(h, t) => {
         val filtered = h.filterNotLit(lit)
-        if filtered.lits.isEmpty then Formula(t).rm(lit)
-        else Formula(Cons(filtered, Formula(t).rm(lit).clauses))
+        Formula(Cons(filtered, Formula(t).rm(lit).clauses))
       }
     } 
   } ensuring { res => 
