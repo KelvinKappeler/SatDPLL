@@ -57,22 +57,10 @@ case class Formula(val clauses: List[Clause]) {
     */
   private def rmClause(lit: Literal): Formula = {
     require(clauses.nonEmpty)
-    // require(this == unique)
-    decreases(clauses.size)
-    clauses match {
-      case Nil() => Formula(List())
-      case Cons(h, Nil()) => {
-        if h.contains(lit) then Formula(List(h))
-        else Formula(List())
-      }
-      case Cons(h, t) if h.contains(lit) => Formula(t).rmClause(lit)
-      case Cons(h, t) => Formula(Cons(h, Formula(t).rmClause(lit).clauses))
-    }
+    Formula(clauses.filter(!_.contains(lit)))
   } ensuring { res => 
     res.clauses.size <= clauses.size
-    // need the following postcondition to express that the result has clauses
-    // that previously contained lit that is not there anymore
-    && (if clauses.head.contains(lit) then !res.clauses.contains(clauses.head) else true)
+    && res == Formula(clauses.filter(!_.contains(lit)))
   }
 
     /** Returns a unit clause, if one exists. A unit clause is a clause with only
