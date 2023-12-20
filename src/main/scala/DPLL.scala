@@ -21,7 +21,6 @@ object DPLL {
   def solve(f: Formula): Option[List[Literal]] = {
     def dpll(formula: Formula, unassigned: List[Literal], assigned: List[Literal]): Option[List[Literal]] = {
       decreases(unassigned.size)
-      require(formula.clauses == formula.distinct)
 
       def removeLit(lit: Literal): List[Literal] = {
         require(!unassigned.isEmpty)
@@ -44,7 +43,6 @@ object DPLL {
       if (unit.isDefined) {
         val lit = unit.get
         removeLit(lit.positive).size < unassigned.size
-        // return dpll(formula.rmClause(lit).rm(lit.neg), removeLit(lit.positive), lit :: assigned)
         return dpll(formula.assign(lit), removeLit(lit.positive), lit :: assigned)
       }
 
@@ -66,7 +64,7 @@ object DPLL {
       None()
     }
 
-    dpll(f.unique, f.distinct, List())
+    dpll(f, f.distinctLits, List())
    }
 
   /** Returns the answer from the given list of literals as a string.

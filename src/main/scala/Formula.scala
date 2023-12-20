@@ -21,7 +21,7 @@ case class Formula(val clauses: List[Clause]) {
     * Returns the set of all positive distinct literals in the formula.
     * @return the set of all positive distinct literals in the formula.
     */
-  def distinct: List[Literal] = flatten.map(_.positive).unique
+  def distinctLits: List[Literal] = flatten.map(_.positive).unique
 
   /**
     * Returns a list of all literals in the formula.
@@ -29,18 +29,9 @@ case class Formula(val clauses: List[Clause]) {
     */
   def flatten: List[Literal] = clauses.map(_.lits).flatten
 
-  def unique: Formula = {
-    decreases(clauses.size)
-    clauses match {
-      case Nil() => Formula(List())
-        case Cons(h, t) =>
-        Formula(Cons(h, Formula(t - h).unique.clauses))
-    }
-  }
-
   def assign(lit: Literal): Formula = {
     require(clauses.nonEmpty)
-    require(clauses == distinct)
+    // require(this == unique)
     rmClause(lit).rm(lit.neg)
   }
 
@@ -66,7 +57,7 @@ case class Formula(val clauses: List[Clause]) {
     */
   private def rmClause(lit: Literal): Formula = {
     require(clauses.nonEmpty)
-    require(clauses == distinct)
+    // require(this == unique)
     decreases(clauses.size)
     clauses match {
       case Nil() => Formula(List())
@@ -77,12 +68,11 @@ case class Formula(val clauses: List[Clause]) {
       case Cons(h, t) if h.contains(lit) => Formula(t).rmClause(lit)
       case Cons(h, t) => Formula(Cons(h, Formula(t).rmClause(lit).clauses))
     }
-    // Formula(clauses.filter(c => !c.contains(lit)))
   } ensuring { res => 
     res.clauses.size <= clauses.size
     // need the following postcondition to express that the result has clauses
     // that previously contained lit that is not there anymore
-    && (if this.clauses.head.contains(lit) then res.clauses.head != this.clauses.head else true)
+    && (if clauses.head.contains(lit) then !res.clauses.contains(clauses.head) else true)
   }
 
     /** Returns a unit clause, if one exists. A unit clause is a clause with only
