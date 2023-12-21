@@ -67,15 +67,13 @@ case class Formula(val clauses: List[Clause]) {
   * @return
   *   A unit clause, if one exists.
   */
-  def getUnit: Option[Literal] = {
+  def getUnit: Option[Clause] = {
     require(clauses.nonEmpty)
-    val clause = clauses.find(_.lits.size == 1)
-    if (clause.isDefined) {
-      Some(clause.get.lits.head)
-    } else {
-      None()
-    }
-  }
+    clauses.find(_.lits.size == 1)
+  } ensuring { res => res match {
+    case Some(c) => (clauses contains c) && c.lits.size == 1
+    case None() => true
+  }}
 
   /**
     * Returns a pure literal, if one exists. A pure literal is a literal that
@@ -93,11 +91,16 @@ case class Formula(val clauses: List[Clause]) {
       case atom@Atom(_) => !lits.contains(Neg(atom))
       case Neg(atom) => !lits.contains(atom)
     )
-  }
+  } ensuring { res => 
+    val lits = flatten
+    res match {
+      case Some(atom@Atom(_)) => !lits.contains(Neg(atom))
+      case Some(Neg(atom)) => !lits.contains(atom)
+      case None() => true
+  }}
 
   private def forall(p: Clause => Boolean): Boolean = this.clauses match {
     case Nil() => true
     case Cons(h, t) => p(h) && t.forall(p)
   }
-  
 }

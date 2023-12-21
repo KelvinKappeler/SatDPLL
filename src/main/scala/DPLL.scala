@@ -41,7 +41,7 @@ object DPLL {
       // unit propagation
       val unit = formula.getUnit
       if (unit.isDefined) {
-        val lit = unit.get
+        val lit = unit.get.lits.head
         removeLit(lit.positive).size < unassigned.size
         return dpll(formula.assign(lit), removeLit(lit.positive), lit :: assigned)
       }
