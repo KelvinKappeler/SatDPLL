@@ -10,8 +10,8 @@ sbt project with stainless. Verify with `sbt compile` and run it with `sbt run`.
     - [x] rm 
 - [x] Literal
 - [ ] Formula
-    - [ ] rm
-        - [x] rmClauseWithLit
-    - [ ] getUnit
-    - [ ] getPure
+    - [x] rm
+    - [x] getUnit
+    - [x] getPure
+    - [ ] eval
     - [ ] cleanClauses (optional)
