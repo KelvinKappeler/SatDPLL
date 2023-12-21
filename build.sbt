@@ -1,5 +1,7 @@
 val scala3Version = "3.3.0"
 
+Compile / run / mainClass := Some("Main")
+
 lazy val root = project
   .in(file("."))
   .enablePlugins(StainlessPlugin)
