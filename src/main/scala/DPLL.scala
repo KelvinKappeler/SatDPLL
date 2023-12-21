@@ -23,7 +23,7 @@ object DPLL {
       decreases(unassigned.size)
 
       def removeLit(lit: Literal): List[Literal] = {
-        require(!unassigned.isEmpty)
+        require(!unassigned.isEmpty && unassigned.contains(lit))
         def putAtEndOfList(lit: Literal, lits: List[Literal]): List[Literal] = {
           decreases(lits)
           lits match {
@@ -42,16 +42,20 @@ object DPLL {
       val unit = formula.getUnit
       if (unit.isDefined) {
         val lit = unit.get.lits.head
-        removeLit(lit.positive).size < unassigned.size
-        return dpll(formula.assign(lit), removeLit(lit.positive), lit :: assigned)
+        if (unassigned.contains(lit.positive)) {
+          val newUnassigned = removeLit(lit.positive)
+          return dpll(formula.assign(lit), newUnassigned, lit :: assigned)
+        }
       }
 
       // pure literal elimination
       val pure = formula.getPure
       if (pure.isDefined) {
         val lit = pure.get
-        removeLit(lit.positive).size < unassigned.size
-        return dpll(formula.assign(lit), removeLit(lit.positive), lit :: assigned)
+        if (unassigned.contains(lit.positive)) {
+          val newUnassigned = removeLit(lit.positive)
+          return dpll(formula.assign(lit), newUnassigned, lit :: assigned)
+        }
       }
 
       // Test if an assignment is possible for the first variable
