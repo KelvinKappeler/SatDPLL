@@ -14,6 +14,20 @@ case class Clause(val lits: List[Literal]) {
 
   def size: BigInt = lits.size ensuring (_ == lits.size)
 
+  def eval(as: List[Literal]): Boolean = {
+    require(lits.nonEmpty)
+    require(as.nonEmpty)
+    decreases(lits.size)
+    lits match {
+      case Nil() => false
+      case Cons(h, Nil()) => as.contains(h)
+      case Cons(h, t) if as.contains(h) => true
+      case Cons(_, t) => Clause(t).eval(as)
+    }
+  } ensuring { res => 
+    res == lits.exists(l => as.exists(_ == l))
+  }
+
   /**
    * Returns a clause that is the result of removing the given literal from
    */

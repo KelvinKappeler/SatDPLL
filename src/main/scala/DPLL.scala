@@ -60,16 +60,21 @@ object DPLL {
 
       // Test if an assignment is possible for the first variable
       val asTrue = dpll(formula.assign(unassigned.head), unassigned.tail, unassigned.head :: assigned)
-
+      if (asTrue.isDefined) return Some(asTrue.get)
       // Do the same with the inverse of the first variable
       val asFalse = dpll(formula.assign(unassigned.head.neg), unassigned.tail, unassigned.head.neg :: assigned)
       if (asFalse.isDefined) return Some(asFalse.get)
 
       None()
     }
-
-    dpll(f, f.distinctLits, List())
-   }
+    val nonEmptyClauses = Formula(f.clauses.filter(_.lits.nonEmpty))
+    if (nonEmptyClauses.clauses.isEmpty) 
+      return Some(List())
+    dpll(nonEmptyClauses, nonEmptyClauses.distinctLits, List())
+  } ensuring { res => res match {
+    case Some(as) if as.nonEmpty => f.eval(as)
+    case _ => true
+  }}
 
   /** Returns the answer from the given list of literals as a string.
     *
