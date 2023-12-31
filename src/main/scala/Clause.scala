@@ -18,14 +18,16 @@ case class Clause(val lits: List[Literal]) {
     require(lits.nonEmpty)
     require(as.nonEmpty)
     decreases(lits.size)
+
     lits match {
       case Nil() => false
       case Cons(h, Nil()) => as.contains(h)
       case Cons(h, t) if as.contains(h) => true
       case Cons(_, t) => Clause(t).eval(as)
     }
+
   } ensuring { res => 
-    res == lits.exists(l => as.exists(_ == l))
+    res == lits.exists(as.contains(_))
   }
 
   /**
