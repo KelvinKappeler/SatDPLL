@@ -30,15 +30,9 @@ case class Formula(val clauses: List[Clause]) {
   def flatten: List[Literal] = clauses.map(_.lits).flatten
 
   def eval(as: List[Literal]): Boolean = {
-    require(clauses.nonEmpty)
-    require(as.nonEmpty)
-    // require(clauses.forall(_.lits.nonEmpty))
-    clauses.forall(c => {
-      require(c.lits.nonEmpty)
-      c.eval(as)
-    })
+    clauses.forall(_.eval(as))
   } ensuring { res =>
-    res == clauses.forall(c => c.lits.exists(l => as.exists(_ == l)))
+    res == clauses.forall(_.eval(as))
   }
 
   def assign(lit: Literal): Formula = {
