@@ -15,8 +15,6 @@ case class Clause(val lits: List[Literal]) {
   def size: BigInt = lits.size ensuring (_ == lits.size)
 
   def eval(as: List[Literal]): Boolean = {
-    require(lits.nonEmpty)
-    require(as.nonEmpty)
     decreases(lits.size)
 
     lits match {
