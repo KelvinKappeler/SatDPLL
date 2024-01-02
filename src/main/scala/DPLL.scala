@@ -21,6 +21,8 @@ object DPLL {
   def solve(f: Formula): Option[List[Literal]] = {
     def dpll(formula: Formula, unassigned: List[Literal], assigned: List[Literal]): Option[List[Literal]] = {
       decreases(unassigned.size)
+      require(assigned.forall(lit => f.flatten.contains(lit)))
+      require(f.distinctLits.nonEmpty)
 
       def removeLit(lit: Literal): List[Literal] = {
         require(!unassigned.isEmpty && unassigned.contains(lit))
@@ -35,14 +37,14 @@ object DPLL {
         putAtEndOfList(lit, unassigned).reverse.tail
       }.ensuring(res => res.size < unassigned.size)
 
-      if (formula.clauses.isEmpty) return Some(assigned)
-      if (unassigned.isEmpty) return None()
+      if (/*formula.clauses.isEmpty && */f.eval(assigned)) return Some(assigned)
+      if (formula.clauses.isEmpty || unassigned.isEmpty) return None()
 
       // unit propagation
       val unit = formula.getUnit
       if (unit.isDefined) {
         val lit = unit.get.lits.head
-        if (unassigned.contains(lit.positive)) {
+        if (unassigned.contains(lit.positive) && f.flatten.contains(lit)) {
           val newUnassigned = removeLit(lit.positive)
           return dpll(formula.assign(lit), newUnassigned, lit :: assigned)
         }
@@ -52,23 +54,37 @@ object DPLL {
       val pure = formula.getPure
       if (pure.isDefined) {
         val lit = pure.get
-        if (unassigned.contains(lit.positive)) {
+        if (unassigned.contains(lit.positive) && f.flatten.contains(lit)) {
           val newUnassigned = removeLit(lit.positive)
           return dpll(formula.assign(lit), newUnassigned, lit :: assigned)
         }
       }
 
       // Test if an assignment is possible for the first variable
-      val asTrue = dpll(formula.assign(unassigned.head), unassigned.tail, unassigned.head :: assigned)
+      val asTrue = 
+        if (f.flatten.contains(unassigned.head)) {
+          dpll(formula.assign(unassigned.head), unassigned.tail, unassigned.head :: assigned)
+        } else {
+          None()
+        }
       if (asTrue.isDefined) return Some(asTrue.get)
+      
       // Do the same with the inverse of the first variable
-      val asFalse = dpll(formula.assign(unassigned.head.neg), unassigned.tail, unassigned.head.neg :: assigned)
+      val asFalse = 
+        if (f.flatten.contains(unassigned.head.neg)) {
+          dpll(formula.assign(unassigned.head.neg), unassigned.tail, unassigned.head.neg :: assigned)
+        } else {
+          None()
+        }
       if (asFalse.isDefined) return Some(asFalse.get)
 
       None()
-    }
+    } ensuring { (res: Option[List[Literal]]) => res match {
+      case Some(as) => f.eval(as)
+      case None() => !f.eval(assigned)
+    }}
     val nonEmptyClauses = Formula(f.clauses.filter(_.lits.nonEmpty))
-    if (nonEmptyClauses.clauses.isEmpty) 
+    if (f.distinctLits.isEmpty) 
       return Some(List())
     dpll(nonEmptyClauses, nonEmptyClauses.distinctLits, List())
   } ensuring { res => res match {
