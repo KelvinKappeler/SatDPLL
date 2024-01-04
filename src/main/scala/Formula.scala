@@ -30,7 +30,8 @@ case class Formula(val clauses: List[Clause]) {
   def flatten: List[Literal] = clauses.map(_.lits).flatten
 
   def eval(as: List[Literal]): Boolean = {
-    clauses.forall(_.eval(as))
+    if clauses.isEmpty then true
+    else clauses.forall(_.eval(as))
   } ensuring { res =>
     res == clauses.forall(_.eval(as))
   }
@@ -38,6 +39,20 @@ case class Formula(val clauses: List[Clause]) {
   def assign(lit: Literal): Formula = {
     require(clauses.nonEmpty)
     rmClause(lit).rm(lit.neg)
+  }
+
+  private def evalInvalidAssignment(unas: List[Literal], as: List[Literal]): Boolean = {
+    require(unas.nonEmpty)
+    require(!this.eval(as))
+    val t = if this.flatten.contains(unas.head) then
+      this.assign(unas.head).eval(unas.head :: as)
+      else false
+    val f = if this.flatten.contains(unas.head.neg) then
+      this.assign(unas.head.neg).eval(unas.head.neg :: as)
+      else false
+    !t && !f
+  } ensuring { res =>
+    res
   }
 
   private def rm(lit: Literal): Formula = { 
